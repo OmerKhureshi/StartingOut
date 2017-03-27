@@ -1,4 +1,4 @@
-package com.application.db.DOAInterfaces;
+package com.application.db.DAOInterfaces;
 
 import java.sql.ResultSet;
 

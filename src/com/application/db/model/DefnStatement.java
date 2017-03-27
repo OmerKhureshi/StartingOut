@@ -1,4 +1,4 @@
-package com.application.db;
+package com.application.db.model;
 
 /**
  * Model for a log statement in the Method Definition File.

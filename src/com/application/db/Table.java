@@ -1,7 +1,6 @@
 package com.application.db;
 
-/**
- * Created by omer on 3/24/2017.
- */
 public class Table {
+    public static final String METHOD_DEFINITION_TABLE = "Method_Defn";
+    public static final String CALL_TRACE_TABLE = "Call_Trace";
 }

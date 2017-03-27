@@ -1,4 +1,4 @@
-package application.logs;
+package com.application.logs;
 
 
 import java.io.File;
