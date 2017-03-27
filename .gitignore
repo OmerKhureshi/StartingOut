@@ -17,7 +17,7 @@ out/
 hs_err_pid*
 
 # Database
-DB/
+/DB/
 
 # Database logs
 *.log
