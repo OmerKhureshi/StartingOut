@@ -4,6 +4,7 @@ out/
 
 # Make sure all java files are included
 !*.java
+
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
