@@ -15,4 +15,7 @@ public class BoundBox {
 
     public final int unitWidthFactor = 3;
     public final int unitHeightFactor = 3;
+
+    public float xCord;
+    public float yCord;
 }

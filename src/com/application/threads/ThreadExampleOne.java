@@ -11,15 +11,13 @@ class ThreadExampleOne {
         synchronized(b) {
             try {
                 System.out.println("Waiting for b to complete...");
-//                b.wait();
-                ObjWrapper.wait(b);
-//                b.total *= 2;
+                ObjWrapper.wait(b);  // Use instead of b.wait();
+                b.total *= 2;
             } catch (InterruptedException e) {}
         }
         System.out.println("Total is: " + b.total);
     }
 }
-
 
 /**
  * ThreadB acquires the lock, completes the task and notifies the main thread.
@@ -31,15 +29,14 @@ class ThreadB extends Thread {
     public void run() {
         synchronized(this) {
             try {
-                sleep(3000);
+                sleep(1500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            for(int i=0;i<10;i++) {
-                total += i;
+            for(int i = 0; i < 10; i++) {
+                total += 1;
             }
-//            notify();
-            ObjWrapper.notify(this);
+            ObjWrapper.notify(this);  // Use instead of b.notify();
         }
     }
 }

@@ -1,6 +1,8 @@
 package com.application.fxgraph.graph;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -10,20 +12,53 @@ import java.util.List;
 public class Element {
     private Element parent;
     private List<Element> children;
+    private int indexInParent;
 
-    public int getIndInParent() {
-        return indInParent;
-    }
-
-    public void setIndInParent(int indInParent) {
-        this.indInParent = indInParent;
-    }
-
-    private int indInParent;
     private int leafCount = 0;
+    boolean isLeafCountSet = false;
+
     private int levelCount = 0;
+    boolean isLevelCountSet = false;
 
     BoundBox boundBox = new BoundBox();
+
+    // Assign this child as the parents child.
+    // Set index in parent
+    // calculate bound box
+    // calculate leaf count.
+    // calculate level count.
+
+    public Element(Element parent) {
+        this.parent = parent;
+        setBoundBox();
+        if (parent != null ) {
+            // If this element has a parent.
+            // Todo Performance: Can improve. Use guava?
+            parent.setChildren(new ArrayList<Element>(Arrays.asList(this)));
+            setIndexInParent(parent.getChildren().size()-1);
+            calculateLevelCount(parent.getLevelCount()+1);
+        } else {
+            // If this element is the root.
+            setIndexInParent(0);
+            calculateLevelCount(0);
+        }
+        calculateLeafCount();
+        setBoundBox();
+
+    }
+    public Element(Element parent, ArrayList<Element> children) {
+        this(parent);
+        setChildren(children);
+        setIndexInParent(parent.getChildren().size()-1);
+    }
+
+    public int getIndexInParent() {
+        return indexInParent;
+    }
+
+    public void setIndexInParent(int indexInParent) {
+        this.indexInParent = indexInParent;
+    }
 
     public int getLevelCount() {
         return levelCount;
@@ -31,15 +66,6 @@ public class Element {
 
     public void setLevelCount(int levelCount) {
         this.levelCount = levelCount;
-    }
-
-    public Element(Element parent) {
-        this.parent = parent;
-    }
-
-    public Element(Element parent, ArrayList<Element> children) {
-        this.parent = parent;
-        this.children = children;
     }
 
     public Element getParent() {
@@ -55,14 +81,23 @@ public class Element {
     }
 
     public void setChildren(List<Element> children) {
-        this.children = children;
+        if (this.children != null)
+            (this.children).addAll(children);
+//            this.children.addAll(children);
+        else
+            this.children = children;
     }
 
     public int getLeafCount() {
+        // ToDo add exception if calculateleafCount was not invoked.
+        if (isLeafCountSet == false)
+            return -10;
+//            throw new IllegalAccessException("Leaf count is accessed before calulating it.");
         return leafCount;
     }
 
     public void setLeafCount(int leafCount) {
+        isLeafCountSet = true;
         this.leafCount = leafCount;
     }
 
@@ -75,10 +110,20 @@ public class Element {
     public int calculateLeafCount() {
         int count=0;
 
+//                 root
+//         3           1          1
+//        c11         c12        c13
+//      1     1   1                1
+//     c21  c22  c23              c24
+//
+//                                 c31
+//
+//                                 c41
+
         // If current element is a leaf. Sets its leaf count as 0 as this is the default value for a leaf. Return 1 so
         // its parent can set its leaf count as 1 plus leaf count of its other children.
         if (children == null) {
-            leafCount = 0;
+            setLeafCount(1);
             return 1;
         }
 
@@ -86,8 +131,7 @@ public class Element {
             count += ele.calculateLeafCount();
         }
         setLeafCount(count);
-
-        return count == 0? 1 : count;
+        return count;
     }
 
     /**
@@ -95,17 +139,17 @@ public class Element {
      * indirect children of the current tree.
      * @return the height of the tree rooted at current element.
      */
-    public int calculateLevelCount(int count) {
-        setLevelCount(count);
+    public int calculateLevelCount(int yourLevel) {
+        setLevelCount(yourLevel);
 
         if (getChildren() == null)
-            return count;
+            return yourLevel;
 
         for (Element ele : getChildren()) {
-            ele.calculateLevelCount(count + 1);
+            ele.calculateLevelCount(yourLevel + 1);
         }
 
-        return count;
+        return yourLevel;
     }
 
     /**
@@ -123,28 +167,54 @@ public class Element {
         return element;
     }
 
-    public Element getTopSibling() {
-        return parent.getChildren().get(0);
-    }
-
+    /**
+     * BoundBox defines the space occupied by each element on the UI. No other element can occupy this space.
+     * The width of a BoundBox of all the element is a constant, unitWidthFactor. The height of a BoundBox is
+     * determined by the number of leaves it has; represented by leafCount.
+     */
     public void setBoundBox() {
-        if (getIndInParent() != 0) {
-            Element sib = getParent().getChildren().get(getIndInParent() - 1);
+
+        //Todo handle this case;
+        // the leaf element has a leaf count of 0. Hence while calculating the yBottomLeft, which depends on the the leafcount,
+        // we get 0 product. Infact, in such cases, that is for a leaf itself, its leaf count should have been 1. But the
+        // class defines it as 0 to differentiate between a parent having single leaf or the leaf itself.
+        if (getParent() != null && getIndexInParent() != 0) {
+            // If this element has another sibling element before it, get few of its bounds.
+            Element sib = getParent().getChildren().get(getIndexInParent() - 1);
             BoundBox sibBB = sib.boundBox;
 
             boundBox.xTopLeft = sibBB.xBottomLeft;
             boundBox.yTopLeft = sibBB.yBottomLeft;
+        } else if (getParent() == null) {
+            // If this element is the root of the tree.
+            boundBox.xTopLeft= 0;
+            boundBox.yTopLeft = 0;
 
-            boundBox.xTopRight = sibBB.xTopLeft + boundBox.unitWidthFactor;
-            boundBox.yTopRight = sibBB.yTopLeft;
+        } else {
+            // If this element is the first child of its parent element.
+            Element parent = getParent();
+            BoundBox parentBB = parent.boundBox;
 
-            boundBox.xBottomLeft = boundBox.xTopLeft ;
-            boundBox.yBottomLeft = boundBox.yTopLeft + (boundBox.unitHeightFactor * leafCount);
-
-            boundBox.xBottomRight = boundBox.xTopRight;
-            boundBox.yBottomRight = boundBox.yBottomLeft;
+            boundBox.xTopLeft = parentBB.xTopRight;
+            boundBox.yTopLeft = parentBB.yTopRight;
         }
+
+        boundBox.xTopRight = boundBox.xTopLeft + boundBox.unitWidthFactor;
+        boundBox.yTopRight = boundBox.yTopLeft;
+
+        boundBox.xBottomLeft = boundBox.xTopLeft ;
+        boundBox.yBottomLeft = boundBox.yTopLeft + (boundBox.unitHeightFactor * leafCount);
+
+        boundBox.xBottomRight = boundBox.xTopRight;
+        boundBox.yBottomRight = boundBox.yBottomLeft;
+
+        boundBox.xCord = boundBox.xTopLeft + (boundBox.xTopRight - boundBox.xTopLeft) / 2;  // Use this instead of just adding and dividing by 2 to avoid overflow.
+        boundBox.yCord = boundBox.yTopLeft + (boundBox.yTopRight - boundBox.yTopLeft) / 2;  // Use this instead of just adding and dividing by 2 to avoid overflow.
     }
 
-    //ToDo implement addition of indInParent.
+    public BoundBox getBoundBox() {
+        return boundBox;
+    }
+
+    //ToDo implement addition of indexInParent.
 }

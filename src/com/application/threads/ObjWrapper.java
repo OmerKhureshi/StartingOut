@@ -1,32 +1,44 @@
 package com.application.threads;
 
+import java.lang.management.ManagementFactory;
 import java.time.Instant;
 
 public class ObjWrapper {
+    // Process id remains same for all threads. Therefore a single static final String constant variable will suffice.
+    static final String PROCESS_ID = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+    // Separator used in the call trace log.
+    static final String SEPARATOR = "|";
+    // Unique tag to differentiate Object Wrapper specific statemet
+    static final String TAG = "ObjWrapper";
 
-    public void getId(Object obj) {
-        obj.hashCode();
+    public static void printTraceInfo(Object obj, String eventType, String methodId) {
+        String callTraceEntry = PROCESS_ID                // Process ID
+                + SEPARATOR + Thread.currentThread().getId()    // Thread Id
+                + SEPARATOR + methodId                          // Method Id reserve for methods of this class
+                + SEPARATOR + eventType                         // Enter or Exit
+                + SEPARATOR + "[]"                              // Arguments for methods. Blank for all methods.
+                + SEPARATOR + Instant.now()                     // Time stamp
+                + SEPARATOR + System.identityHashCode(obj);     // Unique id for each object
+
+        // ToDo Determine best way to print to console or log file.
+        System.out.println(TAG + " : " + callTraceEntry);
     }
 
     public static void wait(Object obj)throws InterruptedException {
-        System.out.println("Entering Object::wait: Thread Name: " + Thread.currentThread() + " at time: " + Instant.now());
+        printTraceInfo(obj, "Enter", "-1");
         obj.wait();
-        System.out.println("Exiting Object::wait: Thread Name: " + Thread.currentThread() + " at time: " + Instant.now());
+        printTraceInfo(obj, "Exit", "-1");
     }
 
     public static void notify(Object obj) {
-        System.out.println("Entering Object::notify: Thread Name: " + Thread.currentThread() + " at time: " + Instant.now());
+        printTraceInfo(obj, "Enter", "-2");
         obj.notify();
-        System.out.println("Exiting Object::notify: Thread Name: " + Thread.currentThread() + " at time: " + Instant.now());
+        printTraceInfo(obj, "Exit", "-2");
     }
 
     public static void notifyAll(Object obj) {
-        System.out.println("Entering Object::notifyAll: Thread Name: " + Thread.currentThread() + " at time: " + Instant.now());
+        printTraceInfo(obj, "Enter", "-3");
         obj.notifyAll();
-        System.out.println("Exiting Object::notifyAll: Thread Name: " + Thread.currentThread() + " at time: " + Instant.now());
+        printTraceInfo(obj, "Exit", "-3");
     }
-
-    // For best performance, compare fewer values.
-    // Overriding hash method will render it un-overrideable for the users. Therefore use a different method to establish equality.
-    // Should not depend on the overridden implementation of equals, hash or toString.
 }
