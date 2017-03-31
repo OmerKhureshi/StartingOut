@@ -22,6 +22,9 @@ hs_err_pid*
 # Database logs
 *.log
 
+# Text file. These are generated every run of program.
+ObjectWrapperCallTrace.txt
+
 # Intellij specific
 *.idea
 *.iml
