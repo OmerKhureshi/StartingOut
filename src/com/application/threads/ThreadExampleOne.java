@@ -1,10 +1,14 @@
 package com.application.threads;
 
+import java.io.File;
+
 /**
  * Main thread create a new thread, b, and waits while thread b executes a task and notifies the main thread.
  */
 class ThreadExampleOne {
     public static void main(String [] args) {
+        ObjWrapper.setLogFileName(new File ("ObjectWrapperCallTrace.txt"));
+
         ThreadB b = new ThreadB();
         b.setName("Thread B");
         b.start();

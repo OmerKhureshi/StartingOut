@@ -1,13 +1,16 @@
 package com.application.threads;
 
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.time.Instant;
 
 public class ObjWrapper {
     // Process id remains same for all threads. Therefore a single static final String constant variable will suffice.
     static final String PROCESS_ID = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+
     // Separator used in the call trace log.
     static final String SEPARATOR = "|";
+
     // Unique tag to differentiate Object Wrapper specific statement
     static final String TAG = "ObjWrapper";
 
@@ -20,7 +23,7 @@ public class ObjWrapper {
                 + SEPARATOR + Instant.now()                     // Time stamp
                 + SEPARATOR + System.identityHashCode(obj);     // Unique id for each object
 
-        // ToDo Determine best way to print to console or log file.
+        // ToDo Determine best way to print to console or log path.
         System.out.println(TAG + " : " + callTraceEntry);
 
         LogWriterUtil.write(callTraceEntry);
@@ -42,5 +45,9 @@ public class ObjWrapper {
         printTraceInfo(obj, "Enter", "-3 (notifyAll)");
         obj.notifyAll();
         printTraceInfo(obj, "Exit", "-3 (notifyAll)");
+    }
+
+    public static void setLogFileName(File fileName) {
+        LogWriterUtil.initialize(fileName);
     }
 }

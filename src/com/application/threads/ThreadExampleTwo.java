@@ -1,5 +1,7 @@
 package com.application.threads;
 
+import java.io.File;
+
 import static java.lang.Thread.sleep;
 
 public class ThreadExampleTwo {
@@ -11,6 +13,7 @@ public class ThreadExampleTwo {
     boolean notified = false;
 
     public static void main(String[] args) {
+        ObjWrapper.setLogFileName(new File("ObjectWrapperCallTrace.txt"));
         new ThreadExampleTwo().startAll("Thread A", "Thread B", "Thread C");
     }
 

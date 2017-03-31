@@ -1,39 +1,43 @@
 package com.application.threads;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.Collections;
+import java.io.*;
 
 public class LogWriterUtil {
-    static Path file;
+    private static File file;
+    private static StatePrintWriter printWriter;
+    private static boolean isFirstRun = true;
 
-    public static void main(String[] args) {
-        initialize();
-        write("Line 1");
-        write("Line 2");
-    }
-
-    private static void initialize() {
-        file = Paths.get("ObjectWrapperCallTrace.txt");
-    }
-
-    public static void write(String line) {
-        if (file == null) {
-            initialize();
-//            throw new IllegalStateException("LogWriterUtil should be initialized first.");
-        }
+    public static void initialize(File fileName) {
+        isFirstRun = false;
+        file = fileName;
 
         try {
-            Files.write(file, Collections.singletonList(line), Charset.forName("UTF-8"), StandardOpenOption.APPEND);
+            printWriter = new StatePrintWriter(new PrintWriter(new BufferedWriter(new FileWriter(file))));
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public synchronized static void write(String line) {
+        if (isFirstRun || file == null) {
+            throw new IllegalStateException("LogWriterUtil should be initialized with file name first." +
+                    " Use ObjWrapper.setLogFileName()");
+        }
+
+        if (printWriter.isOpen()) {
+            printWriter.println(line);
+            printWriter.flush();
+        } else
+            throw new IllegalStateException("File is closed. Hence cannot write to it.");
+    }
+}
+
+class StatePrintWriter extends PrintWriter {
+    StatePrintWriter(PrintWriter writer) {
+        super(writer);
+    }
+
+    boolean isOpen() {
+        return out != null;
     }
 }
