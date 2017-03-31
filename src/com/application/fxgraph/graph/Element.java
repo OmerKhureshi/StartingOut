@@ -1,9 +1,6 @@
 package com.application.fxgraph.graph;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Element class represent each method invocation on the UI. To avoid confusion, it has not been named as Node, which is
@@ -15,41 +12,23 @@ public class Element {
     private int indexInParent;
 
     private int leafCount = 0;
-    boolean isLeafCountSet = false;
+    private boolean isLeafCountSet = false;
 
     private int levelCount = 0;
-    boolean isLevelCountSet = false;
 
-    BoundBox boundBox = new BoundBox();
-
-    // Assign this child as the parents child.
-    // Set index in parent
-    // calculate bound box
-    // calculate leaf count.
-    // calculate level count.
+    private BoundBox boundBox = new BoundBox();
 
     public Element(Element parent) {
         this.parent = parent;
-        setBoundBox();
         if (parent != null ) {
             // If this element has a parent.
             // Todo Performance: Can improve. Use guava?
-            parent.setChildren(new ArrayList<Element>(Arrays.asList(this)));
+            parent.setChildren(new ArrayList<>(Collections.singletonList(this)));
             setIndexInParent(parent.getChildren().size()-1);
-            calculateLevelCount(parent.getLevelCount()+1);
         } else {
             // If this element is the root.
             setIndexInParent(0);
-            calculateLevelCount(0);
         }
-        calculateLeafCount();
-        setBoundBox();
-
-    }
-    public Element(Element parent, ArrayList<Element> children) {
-        this(parent);
-        setChildren(children);
-        setIndexInParent(parent.getChildren().size()-1);
     }
 
     public int getIndexInParent() {
@@ -72,72 +51,69 @@ public class Element {
         return parent;
     }
 
-    public void setParent(Element parent) {
-        this.parent = parent;
-    }
-
     public List<Element> getChildren() {
         return children;
     }
 
+    /**
+     * Appends or assigns the passed argument list to the current list of child elements depending on if the children
+     * list of the current element already has elements or is null.
+     * @param children the list of child elements to append or assign to list of children.
+     */
     public void setChildren(List<Element> children) {
         if (this.children != null)
-            (this.children).addAll(children);
-//            this.children.addAll(children);
+            this.children.addAll(children);
         else
             this.children = children;
     }
 
     public int getLeafCount() {
         // ToDo add exception if calculateleafCount was not invoked.
-        if (isLeafCountSet == false)
+        if (!isLeafCountSet)
             return -10;
 //            throw new IllegalAccessException("Leaf count is accessed before calulating it.");
         return leafCount;
     }
 
-    public void setLeafCount(int leafCount) {
+    private void setLeafCount(int leafCount) {
         isLeafCountSet = true;
         this.leafCount = leafCount;
     }
 
     /**
-     * Calculates the leaf count of the current element. Leaf count is the count of the number of leaves or element in
-     * this tree, that have no children. A leaf will have a leaf count of 0.
-     * Note: this method does not return the leaf count. Use Element.getLeafCount() to get the leaf count of current element.
+     * Calculates and sets the leaf count of the current element and all the elements in this tree.
+     * Leaf count is the count of the number of leaves or element in this tree that have no children.
+     * The only exception is a leaf which will have a leaf count of 1.
+     * Every time a the element tree is manipulated, this method has to be called on the root of the tree to recalculate
+     * leaf count of all the children.
+     *
      * @return leaf count
      */
     public int calculateLeafCount() {
         int count=0;
 
-//                 root
-//         3           1          1
-//        c11         c12        c13
-//      1     1   1                1
-//     c21  c22  c23              c24
-//
-//                                 c31
-//
-//                                 c41
-
-        // If current element is a leaf. Sets its leaf count as 0 as this is the default value for a leaf. Return 1 so
-        // its parent can set its leaf count as 1 plus leaf count of its other children.
+        // If current element is a leaf.
         if (children == null) {
             setLeafCount(1);
             return 1;
         }
 
+        // If current element is not a leaf.
         for (Element ele: children) {
             count += ele.calculateLeafCount();
         }
         setLeafCount(count);
+
         return count;
     }
 
     /**
      * Calculates the max height of the tree and updates the value of levelCount for all the elements that are direct or
      * indirect children of the current tree.
-     * @return the height of the tree rooted at current element.
+     * This method has to be invoked everytime the tree has been manipulated.
+     *
+     * @param yourLevel the level of the root of the tree.
+     * @return the value of the argument passed. Used to support recurrence internally.
      */
     public int calculateLevelCount(int yourLevel) {
         setLevelCount(yourLevel);
@@ -173,11 +149,6 @@ public class Element {
      * determined by the number of leaves it has; represented by leafCount.
      */
     public void setBoundBox() {
-
-        //Todo handle this case;
-        // the leaf element has a leaf count of 0. Hence while calculating the yBottomLeft, which depends on the the leafcount,
-        // we get 0 product. Infact, in such cases, that is for a leaf itself, its leaf count should have been 1. But the
-        // class defines it as 0 to differentiate between a parent having single leaf or the leaf itself.
         if (getParent() != null && getIndexInParent() != 0) {
             // If this element has another sibling element before it, get few of its bounds.
             Element sib = getParent().getChildren().get(getIndexInParent() - 1);
@@ -189,7 +160,6 @@ public class Element {
             // If this element is the root of the tree.
             boundBox.xTopLeft= 0;
             boundBox.yTopLeft = 0;
-
         } else {
             // If this element is the first child of its parent element.
             Element parent = getParent();
@@ -212,9 +182,23 @@ public class Element {
         boundBox.yCord = boundBox.yTopLeft + (boundBox.yTopRight - boundBox.yTopLeft) / 2;  // Use this instead of just adding and dividing by 2 to avoid overflow.
     }
 
+    /**
+     * This method is used to set bound box properties on all the elements in the tree.
+     * This method has to be called every time the tree is manipulated.
+     *
+     * @param root root element of the tree
+     */
+    public void setBoundBoxOnAll(Element root) {
+        if (root == null) return;
+
+        root.setBoundBox();
+
+        Optional.ofNullable(root.getChildren()).ifPresent(l -> l.forEach(ele -> {
+            setBoundBoxOnAll(ele);
+        }));
+    }
+
     public BoundBox getBoundBox() {
         return boundBox;
     }
-
-    //ToDo implement addition of indexInParent.
 }
