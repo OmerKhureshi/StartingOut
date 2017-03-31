@@ -1,5 +1,4 @@
 # Compiled classes and directories
-*.class
 out/
 
 # Make sure all java files are included
