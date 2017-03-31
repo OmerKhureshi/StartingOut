@@ -11,16 +11,16 @@ public class ThreadExampleTwo {
     boolean notified = false;
 
     public static void main(String[] args) {
-        new ThreadExampleTwo().startAll();
+        new ThreadExampleTwo().startAll("Thread A", "Thread B", "Thread C");
     }
 
-    public void startAll() {
+    public void startAll( String threadOne, String threadTwo, String threadThree) {
         Thread t1 = new Thread(r1);
-        t1.setName("Thread One");
+        t1.setName(threadOne);
         t1.start();
 
         Thread t2 = new Thread(r1);
-        t2.setName("Thread Two");
+        t2.setName(threadTwo);
         t2.start();
 
         for (int i = 0; i < 1000000000; i++) {
@@ -28,7 +28,7 @@ public class ThreadExampleTwo {
         }
 
         Thread t3 = new Thread(r2);
-        t3.setName("Thread Three");
+        t3.setName(threadThree);
         t3.start();
     }
 
@@ -38,7 +38,6 @@ public class ThreadExampleTwo {
             synchronized (lock) {
                 try {
                     System.out.println("Waiting.");
-//                    lock.wait();
                     while (!notified) {
                         ObjWrapper.wait(lock);
                     }
