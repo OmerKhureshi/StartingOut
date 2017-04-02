@@ -1,11 +1,11 @@
-package com.application.logs;
+package com.application.logs.fileHandler;
 
 
 import java.io.File;
 
 public class CallTraceLogFile {
-    private static File file;
     private static String fileName = "L-Instrumentation_call_trace.txt";
+    private static File file = new File(Thread.currentThread().getContextClassLoader().getResource(fileName).getFile());
 
     CallTraceLogFile() {
         // Get the resources

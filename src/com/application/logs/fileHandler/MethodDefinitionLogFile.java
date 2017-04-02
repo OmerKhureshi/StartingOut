@@ -1,10 +1,10 @@
-package com.application.logs;
+package com.application.logs.fileHandler;
 
 import java.io.File;
 
 public class MethodDefinitionLogFile {
-    private static File file;
     private static String fileName = "L-Instrumentation_method_definitions.txt";
+    private static File file = new File(Thread.currentThread().getContextClassLoader().getResource(fileName).getFile());
 
     MethodDefinitionLogFile() {
         // Get the resources

@@ -1,16 +1,17 @@
-package com.application.logs;
+package com.application.logs.parsers;
 
 import com.application.db.DatabaseUtil;
+import com.application.logs.parsers.FileParser;
 
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class ParseMethodDefinition implements FileParser {
     private BufferedReader br;
     String line;
     List<String> vals;
+
     @Override
     public boolean readFile(File logFile) {
         try {

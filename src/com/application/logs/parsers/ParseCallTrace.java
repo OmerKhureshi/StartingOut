@@ -1,6 +1,7 @@
-package com.application.logs;
+package com.application.logs.parsers;
 
 import com.application.db.DatabaseUtil;
+import com.application.logs.parsers.FileParser;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -29,7 +30,7 @@ public class ParseCallTrace implements FileParser {
     }
 
     public List<String> parse(String line) {
-        System.out.println(Arrays.asList(line.split("|")));
-        return Arrays.asList(line.split("|"));
+//        System.out.println(Arrays.asList(line.split("\\|")));
+        return Arrays.asList(line.split("\\|"));
     }
 }

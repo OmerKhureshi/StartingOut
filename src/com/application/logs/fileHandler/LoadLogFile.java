@@ -1,12 +1,14 @@
-package com.application.logs;
+package com.application.logs.fileHandler;
 
 import com.application.db.DatabaseUtil;
+import com.application.logs.parsers.FileParser;
+import com.application.logs.parsers.ParseCallTrace;
+import com.application.logs.parsers.ParseMethodDefinition;
+import org.apache.derby.iapi.db.Database;
 
-import javax.xml.crypto.Data;
 import java.io.File;
+import java.sql.Date;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
 
 public class LoadLogFile {
     FileParser fileParser = null;
@@ -18,16 +20,19 @@ public class LoadLogFile {
 
     public void load(LogType logType) {
         if (logType == LogType.MethodDefn) {
-            new ParseMethodDefinition().readFile(new MethodDefinitionLogFile().getFile());
+            new ParseMethodDefinition().readFile(MethodDefinitionLogFile.getFile());
         } else if (logType == LogType.CallTrace) {
-            fileParser = new ParseCallTrace();
-            fileParser.readFile(CallTraceLogFile.getFile());
+            new ParseCallTrace().readFile(CallTraceLogFile.getFile());
         }
     }
 
     public static void main(String[] args) {
         System.out.println("Starting out");
-        new LoadLogFile().load(LoadLogFile.LogType.MethodDefn);
+        DatabaseUtil.dropCallTrace();
+//        DatabaseUtil.dropMethodDefn();
+
+//        new LoadLogFile().load(LoadLogFile.LogType.MethodDefn);
+        new LoadLogFile().load(LoadLogFile.LogType.CallTrace);
 
 
         try {

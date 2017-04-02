@@ -1,4 +1,4 @@
-package com.application.logs;
+package com.application.logs.parsers;
 
 import java.io.*;
 import java.util.List;

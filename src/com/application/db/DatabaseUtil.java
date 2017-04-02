@@ -1,5 +1,7 @@
 package com.application.db;
 
+import javafx.scene.control.Tab;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,14 +55,15 @@ public class DatabaseUtil {
             ps = cn.createStatement();
 
             sql = "CREATE TABLE " + CALL_TRACE_TABLE + " (\n" +
-                    "   \"processID\" INTEGER not null primary key,\n" +
+                    "   \"processID\" INTEGER not null,\n" +
                     "    \"threadID\" INTEGER,\n" +
                     "    \"methodID\" INTEGER,\n" +
-                    "    \"message\" VARCHAR(50),\n" +
-                    "    \"parameter\" VARCHAR(20)\n" +
+                    "    \"message\" VARCHAR(20),\n" +
+                    "    \"parameter\" VARCHAR(200)\n" +
                         /*"   FOREIGN KEY(\"methodID\") REFERENCES METHOD(\"methdID\")"+ */
                     ")";
 
+            System.out.println("Created call trace table now. ");
             ps.executeUpdate(sql);
             ps.close();
             ps = null;
@@ -70,7 +73,7 @@ public class DatabaseUtil {
         } catch (SQLException e) {
             String sqlError = e.getSQLState();
             if (sqlError.equals("X0Y32")) {
-                System.out.println("Table already exists.");
+                System.out.println(TableNames.CALL_TRACE_TABLE + " table already exists.");
                 callTraceTableCreated = true;
                 return true;
             } else {
@@ -126,12 +129,13 @@ public class DatabaseUtil {
             ps = null;
             cn.close();
             cn = null;
+            System.out.println("Method defn table created.");
             methodDefnTableCreated = true;
         } catch (SQLException e) {
             String sqlError = e.getSQLState();
             if (sqlError.equals("X0Y32")) {
                 methodDefnTableCreated = true;
-                System.out.println("Table already exists.");
+                System.out.println(TableNames.METHOD_DEFINITION_TABLE + " table already exists.");
                 return true;
             } else {
                 e.printStackTrace();
@@ -139,6 +143,7 @@ public class DatabaseUtil {
             }
         }
         finally{
+            methodDefnTableCreated = true;
             if (ps != null){
                 try { ps.close();} catch (SQLException e){;}
                 ps = null;
@@ -157,12 +162,14 @@ public class DatabaseUtil {
         Connection conn = getConnection();
         Statement ps = null;
         String sql;
+//       394 | 0 | 1 | Enter|[2131427413]|2017-03-01 21:34:55.529
 
         int processID = Integer.parseInt(vals.get(0));
         int threadID = Integer.parseInt(vals.get(1));
         int methodID = Integer.parseInt(vals.get(2));
-        String eventType = vals.get(0);
-        String parameters = vals.get(0);
+        String eventType = vals.get(3);
+        String parameters = vals.get(4);
+//        String timeStamp = vals.get(5);
 
         if (!callTraceTableCreated) {
             createCallTrace();
@@ -171,6 +178,7 @@ public class DatabaseUtil {
         try {
             ps = conn.createStatement();
 
+            System.out.println("value of callTraceTableCreated: " + callTraceTableCreated);
             sql = "INSERT INTO " + CALL_TRACE_TABLE + " VALUES(\n"+
                     processID +","+
                     threadID +","+
@@ -179,6 +187,7 @@ public class DatabaseUtil {
                     parameters +
                     "')";
 
+            System.out.println("Inserting into call trace the statement: " + sql);
             ps.executeUpdate(sql);
             ps.close();
             ps = null;
@@ -213,7 +222,7 @@ public class DatabaseUtil {
         String arguments = vals.get(3);
 
         if (!methodDefnTableCreated) {
-            System.out.println("Table is not created.");
+            System.out.println(TableNames.METHOD_DEFINITION_TABLE + " table is not created.");
             createMethodDefn();
         }
 
@@ -233,6 +242,7 @@ public class DatabaseUtil {
             conn.close();
             conn = null;
 
+            System.out.println("Inserted into method defn. ");
         } catch (SQLException e) {
             System.out.println(">>>error causing sql: "+sql);
             e.printStackTrace();
@@ -305,6 +315,37 @@ public class DatabaseUtil {
 
         return process;
     }
+
+    public static void dropCallTrace() {
+        if (true) {
+            try {
+                Connection conn = DatabaseUtil.getConnection();
+                Statement statement = conn.createStatement();
+                String sql= "Drop table " + TableNames.CALL_TRACE_TABLE;
+                System.out.println("Dropping call trace table.");
+                statement.execute(sql);
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } else System.out.println(TableNames.CALL_TRACE_TABLE + " table does not exist. in dropCallTrace");
+
+    }
+
+    public static void dropMethodDefn() {
+        if (methodDefnTableCreated) {
+            try {
+                Connection conn = DatabaseUtil.getConnection();
+                Statement statement = conn.createStatement();
+                String sql= "Drop table " + TableNames.METHOD_DEFINITION_TABLE;
+                statement.execute(sql);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } else System.out.println(TableNames.METHOD_DEFINITION_TABLE + " table does not exist.");
+
+    }
+
 }
 
 

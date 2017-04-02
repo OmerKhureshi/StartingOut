@@ -1,11 +1,9 @@
 package com.application.db.DAOImplementation;
 
-import com.application.db.DAOInterfaces.DefnDAOInterface;
 import com.application.db.DAOInterfaces.TraceDAOInterface;
 import com.application.db.DatabaseUtil;
-import com.application.db.Table;
+import com.application.db.TableNames;
 
-import javax.xml.crypto.Data;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,7 +38,7 @@ public class TraceDAOImpl implements TraceDAOInterface{
         try {
             ps = conn.createStatement();
 
-            sql = "INSERT INTO " + Table.CALL_TRACE_TABLE + " VALUES(\n"+
+            sql = "INSERT INTO " + TableNames.CALL_TRACE_TABLE + " VALUES(\n"+
                     processID +","+
                     threadID +","+
                     methodID +",'"+
@@ -85,7 +83,7 @@ public class TraceDAOImpl implements TraceDAOInterface{
         try {
             ps = cn.createStatement();
 
-            sql = "CREATE TABLE " + Table.CALL_TRACE_TABLE + " (\n" +
+            sql = "CREATE TABLE " + TableNames.CALL_TRACE_TABLE + " (\n" +
                     "   \"processID\" INTEGER not null primary key,\n" +
                     "    \"threadID\" INTEGER,\n" +
                     "    \"methodID\" INTEGER,\n" +
@@ -103,7 +101,7 @@ public class TraceDAOImpl implements TraceDAOInterface{
         } catch (SQLException e) {
             String sqlError = e.getSQLState();
             if (sqlError.equals("X0Y32")) {
-                System.out.println("Table already exists.");
+                System.out.println("TableNames already exists.");
                 isTableCreated = true;
                 return true;
             } else {
@@ -143,7 +141,7 @@ public class TraceDAOImpl implements TraceDAOInterface{
         try{
             ps = c.createStatement();
             ps.setMaxRows(numOfRows);
-            query = "SELECT * FROM " + Table.CALL_TRACE_TABLE;
+            query = "SELECT * FROM " + TableNames.CALL_TRACE_TABLE;
             rs = ps.executeQuery(query);
         } catch (SQLException e) {
             e.printStackTrace();
