@@ -128,7 +128,6 @@ public class Model {
                 graphParent.addCellChild( cell);
             }
         }
-
     }
 
     /**

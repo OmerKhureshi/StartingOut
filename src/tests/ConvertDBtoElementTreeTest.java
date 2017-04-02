@@ -1,7 +1,7 @@
 package tests;
 
-import com.application.fxgraph.graph.Element;
-import com.application.logs.renameUnwrapper.ConvertDBtoElementTree;
+import com.application.fxgraph.ElementHelpers.Element;
+import com.application.fxgraph.ElementHelpers.ConvertDBtoElementTree;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,6 +1,6 @@
-package com.application.logs.renameUnwrapper;
+package com.application.fxgraph.ElementHelpers;
 
-import com.application.fxgraph.graph.Element;
+import com.application.fxgraph.ElementHelpers.Element;
 
 import java.util.*;
 

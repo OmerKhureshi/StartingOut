@@ -14,7 +14,6 @@ import com.application.fxgraph.layout.random.RandomLayout;
 public class Main extends Application {
 
     // Part of code from http://stackoverflow.com/a/30696075/3690248
-
     Graph graph = new Graph();
 
     @Override

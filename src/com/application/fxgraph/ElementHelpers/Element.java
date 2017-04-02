@@ -1,4 +1,6 @@
-package com.application.fxgraph.graph;
+package com.application.fxgraph.ElementHelpers;
+
+import com.application.fxgraph.graph.BoundBox;
 
 import java.util.*;
 
