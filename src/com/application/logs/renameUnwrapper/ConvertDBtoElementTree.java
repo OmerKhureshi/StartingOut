@@ -7,7 +7,7 @@ import java.util.*;
 public class ConvertDBtoElementTree {
 
     // Stores the root Elements for each tree having a unique thread id.
-    private Map<Integer, Element> threadMapToRoot = new HashMap<>();
+    private Map<Integer, Element> threadMapToRoot = new LinkedHashMap<>();
 
     // Used internally for linking parent and child Elements.
     private Deque<Element> stack = new LinkedList<>();
@@ -52,6 +52,23 @@ public class ConvertDBtoElementTree {
 
     public Map<Integer, Element> getThreadMapToRoot() {
         return threadMapToRoot;
+    }
+
+    /**
+     * Calculates the Element properties on all direct and indirect children of current element.
+     * Ensure that the sub tree is fully constructed before invoking this method.
+     */
+    public void calculateElementProperties() {
+        /*
+        Iterate through the threadMapToRoot and calculate Element properties for all the roots.
+         */
+        threadMapToRoot.entrySet().stream()
+                .map(Map.Entry::getValue)
+                .forEachOrdered(root -> {
+                    root.calculateLeafCount();
+                    root.calculateLevelCount(0);
+                    root.setBoundBoxOnAll(root);
+                });
     }
 }
 

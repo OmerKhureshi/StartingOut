@@ -148,7 +148,7 @@ public class Element {
      * The width of a BoundBox of all the element is a constant, unitWidthFactor. The height of a BoundBox is
      * determined by the number of leaves it has; represented by leafCount.
      */
-    public void setBoundBox() {
+    private void setBoundBox() {
         if (getParent() != null && getIndexInParent() != 0) {
             // If this element has another sibling element before it, get few of its bounds.
             Element sib = getParent().getChildren().get(getIndexInParent() - 1);
@@ -200,5 +200,11 @@ public class Element {
 
     public BoundBox getBoundBox() {
         return boundBox;
+    }
+
+    public void calculateElementProperties(Element root, int levelCount) {
+        this.calculateLevelCount(levelCount);
+        this.calculateLeafCount();
+        this.setBoundBoxOnAll(root);
     }
 }
