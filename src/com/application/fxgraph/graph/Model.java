@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.application.fxgraph.ElementHelpers.Element;
 import com.application.fxgraph.cells.CircleCell;
 import com.application.fxgraph.cells.TriangleCell;
 import com.application.fxgraph.cells.RectangleCell;
+// Remember you are on a different branch..
 
 public class Model {
 
@@ -96,6 +98,11 @@ public class Model {
             default:
                 throw new UnsupportedOperationException("Unsupported type: " + type);
         }
+    }
+
+    public void addCircleCell(String id, Element element){
+        CircleCell circleCell = new CircleCell(id, element);
+        addCell(circleCell);
     }
 
     private void addCell( Cell cell) {

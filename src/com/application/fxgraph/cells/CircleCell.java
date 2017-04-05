@@ -1,5 +1,6 @@
 package com.application.fxgraph.cells;
 
+import com.application.fxgraph.ElementHelpers.Element;
 import com.application.fxgraph.graph.Cell;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -20,6 +21,13 @@ public class CircleCell extends Cell {
 
         setView( view);
 
+    }
+    public CircleCell (String id, Element element) {
+        this(id);
+        this.relocate(
+                element.getBoundBox().xCord,
+                element.getBoundBox().yCord
+        );
     }
 
 }

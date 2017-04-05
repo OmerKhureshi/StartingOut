@@ -27,24 +27,6 @@ public class LoadLogFile {
     }
 
     public static void main(String[] args) {
-        System.out.println("Starting out");
-        DatabaseUtil.dropCallTrace();
-//        DatabaseUtil.dropMethodDefn();
 
-//        new LoadLogFile().load(LoadLogFile.LogType.MethodDefn);
-        new LoadLogFile().load(LoadLogFile.LogType.CallTrace);
-
-
-        try {
-            System.out.println(DatabaseUtil.select(10, "Method_Defn"));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
     }
 }

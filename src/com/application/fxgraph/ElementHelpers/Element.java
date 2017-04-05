@@ -15,10 +15,10 @@ public class Element {
 
     private int leafCount = 0;
     private boolean isLeafCountSet = false;
-
     private int levelCount = 0;
-
     private BoundBox boundBox = new BoundBox();
+
+    private int coordMultiplier = 1;
 
     public Element(Element parent) {
         this.parent = parent;
@@ -49,6 +49,19 @@ public class Element {
         this.levelCount = levelCount;
     }
 
+    public void setParent(Element parent) {
+        this.parent = parent;
+        if (parent != null ) {
+            // If this element has a parent.
+            // Todo Performance: Can improve. Use guava?
+            parent.setChildren(new ArrayList<>(Collections.singletonList(this)));
+            setIndexInParent(parent.getChildren().size()-1);
+        } else {
+            // If this element is the root.
+            setIndexInParent(0);
+        }
+    }
+
     public Element getParent() {
         return parent;
     }
@@ -63,10 +76,20 @@ public class Element {
      * @param children the list of child elements to append or assign to list of children.
      */
     public void setChildren(List<Element> children) {
-        if (this.children != null)
+        int ind = 0;
+        if (this.children != null) {
+            ind = this.children.size()-1;
             this.children.addAll(children);
-        else
+        }
+        else {
             this.children = children;
+        }
+
+        for (Element element :
+                children) {
+            element.setIndexInParent(++ind);
+        }
+
     }
 
     public int getLeafCount() {
@@ -159,13 +182,13 @@ public class Element {
             boundBox.xTopLeft = sibBB.xBottomLeft;
             boundBox.yTopLeft = sibBB.yBottomLeft;
         } else if (getParent() == null) {
+
             // If this element is the root of the tree.
             boundBox.xTopLeft= 0;
             boundBox.yTopLeft = 0;
         } else {
             // If this element is the first child of its parent element.
-            Element parent = getParent();
-            BoundBox parentBB = parent.boundBox;
+            BoundBox parentBB = getParent().boundBox;
 
             boundBox.xTopLeft = parentBB.xTopRight;
             boundBox.yTopLeft = parentBB.yTopRight;
@@ -181,7 +204,9 @@ public class Element {
         boundBox.yBottomRight = boundBox.yBottomLeft;
 
         boundBox.xCord = boundBox.xTopLeft + (boundBox.xTopRight - boundBox.xTopLeft) / 2;  // Use this instead of just adding and dividing by 2 to avoid overflow.
-        boundBox.yCord = boundBox.yTopLeft + (boundBox.yTopRight - boundBox.yTopLeft) / 2;  // Use this instead of just adding and dividing by 2 to avoid overflow.
+        boundBox.yCord = boundBox.yTopLeft + (boundBox.yBottomLeft - boundBox.yTopLeft) / 2;  // Use this instead of just adding and dividing by 2 to avoid overflow.
+
+        setCoordMultiplier(coordMultiplier);
     }
 
     /**
@@ -208,5 +233,25 @@ public class Element {
         this.calculateLevelCount(levelCount);
         this.calculateLeafCount();
         this.setBoundBoxOnAll(root);
+    }
+
+    @Override
+    public String toString() {
+        return "x: " + boundBox.xCord + "; " +
+                "y: " + boundBox.yCord + "; " +
+                "level count: " + levelCount + "; " +
+                "leaf count: " + leafCount + "; " +
+                "index in parent: " + indexInParent + "; ";
+    }
+
+    public int getCoordMultiplier() {
+        return coordMultiplier;
+    }
+
+    public void setCoordMultiplier(int coordMultiplier) {
+        this.coordMultiplier = coordMultiplier;
+
+//        boundBox.xCord *= coordMultiplier;
+//        boundBox.yCord *= coordMultiplier;
     }
 }

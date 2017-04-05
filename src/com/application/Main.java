@@ -1,5 +1,14 @@
 package com.application;
 
+import com.application.db.DatabaseUtil;
+import com.application.fxgraph.ElementHelpers.ConvertDBtoElementTree;
+import com.application.fxgraph.ElementHelpers.Element;
+import com.application.logs.fileHandler.CallTraceLogFile;
+import com.application.logs.fileHandler.LoadLogFile;
+import com.application.logs.fileHandler.MethodDefinitionLogFile;
+import com.application.logs.fileIntegrity.CheckFileIntegrity;
+import com.application.logs.parsers.Command;
+import com.application.logs.parsers.ParseMethodDefinition;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -10,6 +19,12 @@ import com.application.fxgraph.graph.Graph;
 import com.application.fxgraph.graph.Model;
 import com.application.fxgraph.layout.base.Layout;
 import com.application.fxgraph.layout.random.RandomLayout;
+
+import javax.swing.text.html.Option;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.IntSupplier;
 
 public class Main extends Application {
 
@@ -29,11 +44,68 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        addGraphComponents();
+//        addGraphComponents();
+        addGraphCellComponents();
+//        Layout layout = new RandomLayout(graph);
+//        layout.execute();
+    }
 
-        Layout layout = new RandomLayout(graph);
-        layout.execute();
+    private void addGraphCellComponents() {
+        System.out.println("Starting out");
+        // Check log file integrity.
+        CheckFileIntegrity.checkFile(CallTraceLogFile.getFile());
 
+        // Parse log file
+            // insert into db
+            // create elements
+            // create circle cells and add to ui.
+
+//        DatabaseUtil.dropCallTrace();
+//        DatabaseUtil.dropMethodDefn();
+//        new LoadLogFile().load(LoadLogFile.LogType.MethodDefn);
+        List<List<String>> list = new ArrayList<>();
+        final ConvertDBtoElementTree convertDBtoElementTree = new ConvertDBtoElementTree();
+        new ParseMethodDefinition().readFile(CallTraceLogFile.getFile(),
+//        new ParseMethodDefinition().readFile(MethodDefinitionLogFile.getFile(),
+                brokenLineList -> {
+                    list.add(brokenLineList);
+//                    try {
+////                        DatabaseUtil.insertMDStmt(brokenLineList);
+//                    } catch (SQLException e) {  // Todo Create a custom exception class and clean this.
+//                        e.printStackTrace();
+//                    } catch (ClassNotFoundException e) {
+//                        e.printStackTrace();
+//                    } catch (InstantiationException e) {
+//                        e.printStackTrace();
+//                    } catch (IllegalAccessException e) {
+//                        e.printStackTrace();
+//                    }
+                    convertDBtoElementTree.StringToElementList(brokenLineList);
+                });
+        convertDBtoElementTree.calculateElementProperties();
+        Map<Integer, Element> threadMapToRoot = convertDBtoElementTree.getThreadMapToRoot();
+        Model model = graph.getModel();
+//        Iterate through the tree and create circle cells for each element found.
+        threadMapToRoot.entrySet().stream()
+                .map(entry -> entry.getValue())
+                .forEachOrdered(root -> createCircleCellsRecursively(root, model));
+//        convertDBtoElementTree.rootsList.stream()
+//                .forEachOrdered(root -> createCircleCellsRecursively(root, model));
+
+        graph.endUpdate();
+    }
+
+    private void createCircleCellsRecursively(Element root, Model model) {
+        if (root == null) {
+            return;
+        }
+        model.addCircleCell("Shit", root);
+        System.out.println("Created new cell: " + root);
+
+        if (root.getChildren() != null){
+            root.getChildren().stream()
+                    .forEachOrdered(ele -> createCircleCellsRecursively(ele, model));
+        }
     }
 
     private void addGraphComponents() {
