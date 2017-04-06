@@ -1,18 +1,25 @@
 package com.application;
 
+import com.application.db.DatabaseUtil;
 import com.application.fxgraph.ElementHelpers.ConvertDBtoElementTree;
 import com.application.fxgraph.ElementHelpers.Element;
+import com.application.fxgraph.cells.CircleCell;
 import com.application.fxgraph.graph.CellType;
 import com.application.fxgraph.graph.Graph;
 import com.application.fxgraph.graph.Model;
 import com.application.logs.fileHandler.CallTraceLogFile;
+import com.application.logs.fileHandler.MethodDefinitionLogFile;
 import com.application.logs.fileIntegrity.CheckFileIntegrity;
+import com.application.logs.parsers.ParseCallTrace;
 import com.application.logs.parsers.ParseMethodDefinition;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import org.apache.derby.iapi.db.Database;
 
+import javax.xml.crypto.Data;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,10 +42,10 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-//        addGraphComponents();
+        //        addGraphComponents();
         addGraphCellComponents();
-//        Layout layout = new RandomLayout(graph);
-//        layout.execute();
+        //        Layout layout = new RandomLayout(graph);
+        //        layout.execute();
     }
 
     private void addGraphCellComponents() {
@@ -46,42 +53,63 @@ public class Main extends Application {
         // Check log file integrity.
         CheckFileIntegrity.checkFile(CallTraceLogFile.getFile());
 
-        // Parse log file
-            // insert into db
-            // create elements
-            // create circle cells and add to ui.
+        try {
+            DatabaseUtil.dropCallTrace(); DatabaseUtil.dropMethodDefn();
+            DatabaseUtil.createCallTrace(); DatabaseUtil.createMethodDefn();
 
-//        DatabaseUtil.dropCallTrace();
-//        DatabaseUtil.dropMethodDefn();
-//        new LoadLogFile().load(LoadLogFile.LogType.MethodDefn);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        new ParseCallTrace().readFile(MethodDefinitionLogFile.getFile(),
+                brokenLineList -> {
+                    try {
+                        DatabaseUtil.insertMDStmt(brokenLineList);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (InstantiationException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                });
+
         List<List<String>> list = new ArrayList<>();
         final ConvertDBtoElementTree convertDBtoElementTree = new ConvertDBtoElementTree();
-        new ParseMethodDefinition().readFile(CallTraceLogFile.getFile(),
-//        new ParseMethodDefinition().readFile(MethodDefinitionLogFile.getFile(),
+        new ParseCallTrace().readFile(CallTraceLogFile.getFile(),
+                //        new ParseMethodDefinition().readFile(MethodDefinitionLogFile.getFile(),
                 brokenLineList -> {
                     list.add(brokenLineList);
-//                    try {
-////                        DatabaseUtil.insertMDStmt(brokenLineList);
-//                    } catch (SQLException e) {  // Todo Create a custom exception class and clean this.
-//                        e.printStackTrace();
-//                    } catch (ClassNotFoundException e) {
-//                        e.printStackTrace();
-//                    } catch (InstantiationException e) {
-//                        e.printStackTrace();
-//                    } catch (IllegalAccessException e) {
-//                        e.printStackTrace();
-//                    }
+                    try {
+                        DatabaseUtil.insertCTStmt(brokenLineList);
+                    } catch (SQLException e) {  // Todo Create a custom exception class and clean this.
+                        e.printStackTrace();
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (InstantiationException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
                     convertDBtoElementTree.StringToElementList(brokenLineList);
                 });
         convertDBtoElementTree.calculateElementProperties();
         Map<Integer, Element> threadMapToRoot = convertDBtoElementTree.getThreadMapToRoot();
         Model model = graph.getModel();
-//        Iterate through the tree and create circle cells for each element found.
+        //        Iterate through the tree and create circle cells for each element found.
         threadMapToRoot.entrySet().stream()
                 .map(entry -> entry.getValue())
                 .forEachOrdered(root -> createCircleCellsRecursively(root, model));
-//        convertDBtoElementTree.rootsList.stream()
-//                .forEachOrdered(root -> createCircleCellsRecursively(root, model));
+        //        convertDBtoElementTree.rootsList.stream()
+        //                .forEachOrdered(root -> createCircleCellsRecursively(root, model));
 
         graph.endUpdate();
     }
@@ -90,8 +118,11 @@ public class Main extends Application {
         if (root == null) {
             return;
         }
-        model.addCircleCell("Shit", root);
-        System.out.println("Created new cell: " + root);
+        CircleCell targetCell = model.addCircleCell("Shit", root);
+        if (root.getParent() != null) {
+            CircleCell sourceCell = root.getParent().getCircleCell();
+            model.addEdge(sourceCell, targetCell);
+        }
 
         if (root.getChildren() != null){
             root.getChildren().stream()
@@ -105,13 +136,13 @@ public class Main extends Application {
 
         graph.beginUpdate();
 
-//        model.addCell("Cell A", CellType.RECTANGLE);
-//        model.addCell("Cell B", CellType.RECTANGLE);
-//        model.addCell("Cell C", CellType.RECTANGLE);
-//        model.addCell("Cell D", CellType.TRIANGLE);
-//        model.addCell("Cell E", CellType.TRIANGLE);
-//        model.addCell("Cell F", CellType.RECTANGLE);
-//        model.addCell("Cell G", CellType.RECTANGLE);
+        //        model.addCell("Cell A", CellType.RECTANGLE);
+        //        model.addCell("Cell B", CellType.RECTANGLE);
+        //        model.addCell("Cell C", CellType.RECTANGLE);
+        //        model.addCell("Cell D", CellType.TRIANGLE);
+        //        model.addCell("Cell E", CellType.TRIANGLE);
+        //        model.addCell("Cell F", CellType.RECTANGLE);
+        //        model.addCell("Cell G", CellType.RECTANGLE);
         model.addCell("Cell A", CellType.RECTANGLE);
         model.addCell("Cell B", CellType.RECTANGLE);
         model.addCell("Cell C", CellType.RECTANGLE);
@@ -126,7 +157,7 @@ public class Main extends Application {
 
         model.addEdge("Cell A", "Cell B");
         model.addEdge("Cell A", "Cell C");
-//        model.addEdge("Cell B", "Cell C");
+        //        model.addEdge("Cell B", "Cell C");
         model.addEdge("Cell C", "Cell D");
         model.addEdge("Cell B", "Cell E");
         model.addEdge("Cell D", "Cell F");

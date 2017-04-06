@@ -333,7 +333,7 @@ public class DatabaseUtil {
     }
 
     public static void dropMethodDefn() {
-        if (methodDefnTableCreated) {
+        if (true) {
             try {
                 Connection conn = DatabaseUtil.getConnection();
                 Statement statement = conn.createStatement();

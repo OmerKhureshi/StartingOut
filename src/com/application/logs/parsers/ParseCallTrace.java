@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ParseCallTrace implements FileParser {
     private BufferedReader br;
@@ -27,6 +28,21 @@ public class ParseCallTrace implements FileParser {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public void readFile(File logFile, Consumer<List<String>> cmd) {
+        try {
+            br = new BufferedReader(new FileReader(logFile));
+            // ToDo Look into streams to perform buffered read and insert.
+            while((line = br.readLine()) != null) {
+                List<String> brokenLineList = parse(line);
+                cmd.accept(brokenLineList);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public List<String> parse(String line) {

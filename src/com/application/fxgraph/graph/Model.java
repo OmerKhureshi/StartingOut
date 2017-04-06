@@ -100,9 +100,11 @@ public class Model {
         }
     }
 
-    public void addCircleCell(String id, Element element){
+    public CircleCell addCircleCell(String id, Element element){
         CircleCell circleCell = new CircleCell(id, element);
+        element.setCircleCell(circleCell);
         addCell(circleCell);
+        return circleCell;
     }
 
     private void addCell( Cell cell) {
@@ -111,6 +113,11 @@ public class Model {
 
         cellMap.put( cell.getCellId(), cell);
 
+    }
+
+    public void addEdge(CircleCell sourceCell, CircleCell targetCell) {
+        Edge edge = new Edge( sourceCell, targetCell);
+        addedEdges.add( edge);
     }
 
     public void addEdge( String sourceId, String targetId) {

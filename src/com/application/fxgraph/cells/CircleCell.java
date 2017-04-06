@@ -20,8 +20,8 @@ public class CircleCell extends Cell {
         view.setFill(Color.RED);
 
         setView( view);
-
     }
+
     public CircleCell (String id, Element element) {
         this(id);
         this.relocate(
@@ -29,5 +29,4 @@ public class CircleCell extends Cell {
                 element.getBoundBox().yCord
         );
     }
-
 }

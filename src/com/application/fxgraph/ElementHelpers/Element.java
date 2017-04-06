@@ -1,5 +1,6 @@
 package com.application.fxgraph.ElementHelpers;
 
+import com.application.fxgraph.cells.CircleCell;
 import com.application.fxgraph.graph.BoundBox;
 
 import java.util.*;
@@ -19,6 +20,16 @@ public class Element {
     private BoundBox boundBox = new BoundBox();
 
     private int coordMultiplier = 1;
+
+    public CircleCell getCircleCell() {
+        return circleCell;
+    }
+
+    public void setCircleCell(CircleCell circleCell) {
+        this.circleCell = circleCell;
+    }
+
+    public CircleCell circleCell = null;
 
     public Element(Element parent) {
         this.parent = parent;
