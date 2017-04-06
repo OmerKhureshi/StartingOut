@@ -18,4 +18,22 @@ public class BoundBox {
 
     public float xCord;
     public float yCord;
+
+    @Override
+    public String toString() {
+        return "BoundBox{" +
+                "xTopLeft=" + xTopLeft +
+                ", yTopLeft=" + yTopLeft +
+                ", xTopRight=" + xTopRight +
+                ", yTopRight=" + yTopRight +
+                ", xBottomRight=" + xBottomRight +
+                ", yBottomRight=" + yBottomRight +
+                ", xBottomLeft=" + xBottomLeft +
+                ", yBottomLeft=" + yBottomLeft +
+                ", unitWidthFactor=" + unitWidthFactor +
+                ", unitHeightFactor=" + unitHeightFactor +
+                ", xCord=" + xCord +
+                ", yCord=" + yCord +
+                '}';
+    }
 }

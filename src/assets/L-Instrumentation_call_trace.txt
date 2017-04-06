@@ -12,3 +12,57 @@
 394|0|1|Exit|[2131427415]|2017-03-01 21:34:55.622
 394|0|3|Enter|[]|2017-03-01 21:34:55.718
 394|0|3|Exit|[]|2017-03-01 21:34:55.721
+394|0|4|Enter|[Hello from Pooja]|2017-03-01 21:34:55.762
+394|0|5|Enter|[Hello from Pooja,NORMAL]|2017-03-01 21:34:55.78
+394|0|6|Enter|[Hello from Pooja,NORMAL,true,0]|2017-03-01 21:34:55.791
+394|0|7|Enter|[,0,0,16]|2017-03-01 21:34:55.801
+394|0|7|Exit|[,0,0,16]|2017-03-01 21:34:55.824
+394|0|8|Enter|[Hello from Pooja,0,0,16]|2017-03-01 21:34:55.842
+394|0|8|Exit|[Hello from Pooja,0,0,16]|2017-03-01 21:34:55.845
+394|0|3|Enter|[]|2017-03-01 21:34:55.915
+394|0|3|Exit|[]|2017-03-01 21:34:55.921
+394|0|9|Enter|[Hello from Pooja,0,0,16]|2017-03-01 21:34:55.918
+394|0|9|Exit|[Hello from Pooja,0,0,16]|2017-03-01 21:34:55.93
+394|0|10|Enter|[]|2017-03-01 21:34:55.941
+394|0|11|Enter|[]|2017-03-01 21:34:55.951
+394|0|11|Exit|[]|2017-03-01 21:34:55.955
+394|0|10|Exit|[]|2017-03-01 21:34:55.959
+394|0|6|Exit|[Hello from Pooja,NORMAL,true,0]|2017-03-01 21:34:55.964
+394|0|5|Exit|[Hello from Pooja,NORMAL]|2017-03-01 21:34:55.969
+394|0|4|Exit|[Hello from Pooja]|2017-03-01 21:34:55.973
+394|0|4|Enter|[Welcome to Android instrumentation! ]|2017-03-01 21:34:55.977
+394|0|5|Enter|[Welcome to Android instrumentation! ,NORMAL]|2017-03-01 21:34:56.003
+394|0|6|Enter|[Welcome to Android instrumentation! ,NORMAL,true,0]|2017-03-01 21:34:56.006
+394|0|7|Enter|[,0,0,36]|2017-03-01 21:34:56.021
+394|0|7|Exit|[,0,0,36]|2017-03-01 21:34:56.024
+394|0|8|Enter|[Welcome to Android instrumentation! ,0,0,36]|2017-03-01 21:34:56.081
+394|0|8|Exit|[Welcome to Android instrumentation! ,0,0,36]|2017-03-01 21:34:56.09
+394|0|3|Enter|[]|2017-03-01 21:34:56.086
+394|0|3|Exit|[]|2017-03-01 21:34:56.1
+394|0|9|Enter|[Welcome to Android instrumentation! ,0,0,36]|2017-03-01 21:34:56.094
+394|0|9|Exit|[Welcome to Android instrumentation! ,0,0,36]|2017-03-01 21:34:56.106
+394|0|10|Enter|[]|2017-03-01 21:34:56.11
+394|0|11|Enter|[]|2017-03-01 21:34:56.114
+394|0|11|Exit|[]|2017-03-01 21:34:56.13
+394|0|10|Exit|[]|2017-03-01 21:34:56.133
+394|0|6|Exit|[Welcome to Android instrumentation! ,NORMAL,true,0]|2017-03-01 21:34:56.137
+394|0|5|Exit|[Welcome to Android instrumentation! ,NORMAL]|2017-03-01 21:34:56.142
+394|0|4|Exit|[Welcome to Android instrumentation! ]|2017-03-01 21:34:56.146
+394|0|4|Enter|[Let the fun begin!]|2017-03-01 21:34:56.168
+394|0|5|Enter|[Let the fun begin!,NORMAL]|2017-03-01 21:34:56.17
+394|0|6|Enter|[Let the fun begin!,NORMAL,true,0]|2017-03-01 21:34:56.18
+394|0|7|Enter|[,0,0,18]|2017-03-01 21:34:56.183
+394|0|7|Exit|[,0,0,18]|2017-03-01 21:34:56.2
+394|0|8|Enter|[Let the fun begin!,0,0,18]|2017-03-01 21:34:56.255
+394|0|8|Exit|[Let the fun begin!,0,0,18]|2017-03-01 21:34:56.259
+394|0|3|Enter|[]|2017-03-01 21:34:56.253
+394|0|3|Exit|[]|2017-03-01 21:34:56.272
+394|0|9|Enter|[Let the fun begin!,0,0,18]|2017-03-01 21:34:56.266
+394|0|9|Exit|[Let the fun begin!,0,0,18]|2017-03-01 21:34:56.279
+394|0|10|Enter|[]|2017-03-01 21:34:56.283
+394|0|11|Enter|[]|2017-03-01 21:34:56.287
+394|0|11|Exit|[]|2017-03-01 21:34:56.294
+394|0|10|Exit|[]|2017-03-01 21:34:56.298
+394|0|6|Exit|[Let the fun begin!,NORMAL,true,0]|2017-03-01 21:34:56.302
+394|0|5|Exit|[Let the fun begin!,NORMAL]|2017-03-01 21:34:56.312
+394|0|4|Exit|[Let the fun begin!]|2017-03-01 21:34:56.317

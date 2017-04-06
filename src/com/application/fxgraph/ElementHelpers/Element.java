@@ -25,7 +25,7 @@ public class Element {
         if (parent != null ) {
             // If this element has a parent.
             // Todo Performance: Can improve. Use guava?
-            parent.setChildren(new ArrayList<>(Collections.singletonList(this)));
+            parent.setChildren(new ArrayList<>(Arrays.asList(this)));
             setIndexInParent(parent.getChildren().size()-1);
         } else {
             // If this element is the root.
@@ -54,7 +54,7 @@ public class Element {
         if (parent != null ) {
             // If this element has a parent.
             // Todo Performance: Can improve. Use guava?
-            parent.setChildren(new ArrayList<>(Collections.singletonList(this)));
+//            parent.setChildren(new ArrayList<>(Collections.singletonList(this)));
             setIndexInParent(parent.getChildren().size()-1);
         } else {
             // If this element is the root.
@@ -80,8 +80,7 @@ public class Element {
         if (this.children != null) {
             ind = this.children.size()-1;
             this.children.addAll(children);
-        }
-        else {
+        } else {
             this.children = children;
         }
 
@@ -89,7 +88,6 @@ public class Element {
                 children) {
             element.setIndexInParent(++ind);
         }
-
     }
 
     public int getLeafCount() {
@@ -181,17 +179,20 @@ public class Element {
 
             boundBox.xTopLeft = sibBB.xBottomLeft;
             boundBox.yTopLeft = sibBB.yBottomLeft;
+            System.out.println("first loop: getParent(): " + getParent() + " getIndexInParent(): " + getIndexInParent());
         } else if (getParent() == null) {
 
             // If this element is the root of the tree.
             boundBox.xTopLeft= 0;
             boundBox.yTopLeft = 0;
+            System.out.println("second loop: getParent(): " + getParent() + " getIndexInParent(): " + getIndexInParent());
         } else {
             // If this element is the first child of its parent element.
             BoundBox parentBB = getParent().boundBox;
 
             boundBox.xTopLeft = parentBB.xTopRight;
             boundBox.yTopLeft = parentBB.yTopRight;
+            System.out.println("third loop: getParent(): " + getParent() + " getIndexInParent(): " + getIndexInParent());
         }
 
         boundBox.xTopRight = boundBox.xTopLeft + boundBox.unitWidthFactor;
@@ -237,11 +238,16 @@ public class Element {
 
     @Override
     public String toString() {
-        return "x: " + boundBox.xCord + "; " +
-                "y: " + boundBox.yCord + "; " +
-                "level count: " + levelCount + "; " +
-                "leaf count: " + leafCount + "; " +
-                "index in parent: " + indexInParent + "; ";
+        return "Element{" +
+//                "parent levelCount=" + parent.getLevelCount() +
+//                ", children size=" + Optional.ofNullable(children).; +
+                ", indexInParent=" + indexInParent +
+                ", leafCount=" + leafCount +
+                ", isLeafCountSet=" + isLeafCountSet +
+                ", levelCount=" + levelCount +
+                ", boundBox=" + boundBox +
+                ", coordMultiplier=" + coordMultiplier +
+                '}';
     }
 
     public int getCoordMultiplier() {

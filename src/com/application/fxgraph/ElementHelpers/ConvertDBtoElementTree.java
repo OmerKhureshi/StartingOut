@@ -66,12 +66,14 @@ public class ConvertDBtoElementTree {
         if (parent == null) {
             if (!threadMapToRoot.containsKey(threadId)) {
                 Element grandParent = new Element(null);
+                grandParent.setChildren(new ArrayList<>(Arrays.asList(cur)));
                 cur.setParent(grandParent);
                 threadMapToRoot.put(threadId, grandParent);
                 System.out.println(">>> New grandparent added. and root added to it. " + cur);
             } else {
                 Element grandparent = threadMapToRoot.get(threadId);   // Get grandParent root for the current threadId
-                grandparent.setChildren(Collections.singletonList(cur));       // set the current element as the child of the grandParent element.
+                grandparent.setChildren(new ArrayList<>(Collections.singletonList(cur)));       // set the current element as the child of the grandParent element.
+                cur.setParent(grandparent);
                 System.out.println(">>> root added to grandparent." + cur);
             }
         }

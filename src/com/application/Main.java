@@ -1,30 +1,21 @@
 package com.application;
 
-import com.application.db.DatabaseUtil;
 import com.application.fxgraph.ElementHelpers.ConvertDBtoElementTree;
 import com.application.fxgraph.ElementHelpers.Element;
+import com.application.fxgraph.graph.CellType;
+import com.application.fxgraph.graph.Graph;
+import com.application.fxgraph.graph.Model;
 import com.application.logs.fileHandler.CallTraceLogFile;
-import com.application.logs.fileHandler.LoadLogFile;
-import com.application.logs.fileHandler.MethodDefinitionLogFile;
 import com.application.logs.fileIntegrity.CheckFileIntegrity;
-import com.application.logs.parsers.Command;
 import com.application.logs.parsers.ParseMethodDefinition;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
-import com.application.fxgraph.graph.CellType;
-import com.application.fxgraph.graph.Graph;
-import com.application.fxgraph.graph.Model;
-import com.application.fxgraph.layout.base.Layout;
-import com.application.fxgraph.layout.random.RandomLayout;
-
-import javax.swing.text.html.Option;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.IntSupplier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class Main extends Application {
 
