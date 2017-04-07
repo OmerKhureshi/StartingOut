@@ -36,6 +36,8 @@ public class ConvertDBtoElementTree {
                 parent = cur;
                 cur = new Element(parent);
 //                stack.push(cur);
+
+
                 break;
 
             // If EventType is EXIT, not much to do. Except maintain the stack.

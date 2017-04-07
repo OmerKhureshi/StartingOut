@@ -16,10 +16,9 @@ public class ElementToChildDAOImpl implements ElementToChildDAOInterface {
     public void createTable() {
         if (!isTableCreated()) {
             try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
-                String sql = "CREATE TABLE " + ELEMENT_TO_CHILD_TABLE + " (\n" +
-                        "    \"parent_id\" INTEGER,\n" +  // todo define foreign key
-                        "    \"child_id\" INTEGER\n" +  // todo define foreign key
-                        /*"   FOREIGN KEY(\"methodID\") REFERENCES METHOD(\"methdID\")"+ */
+                String sql = "CREATE TABLE " + ELEMENT_TO_CHILD_TABLE + " (" +
+                        "    \"parent_id\" INTEGER, " +  // todo define foreign key
+                        "    \"child_id\" INTEGER" +  // todo define foreign key
                         ")";
                 ps.execute(sql);
             } catch (SQLException e) {
@@ -41,7 +40,7 @@ public class ElementToChildDAOImpl implements ElementToChildDAOInterface {
             createTable();
 
         try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
-            String sql = "INSERT INTO " + ELEMENT_TO_CHILD_TABLE + " VALUES(\n" +
+            String sql = "INSERT INTO " + ELEMENT_TO_CHILD_TABLE + " VALUES( " +
                     elementId + ", " +
                     childId +
                     ")";
@@ -49,5 +48,9 @@ public class ElementToChildDAOImpl implements ElementToChildDAOInterface {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) {
+        new ElementToChildDAOImpl().createTable();
     }
 }

@@ -101,7 +101,7 @@ public class Main extends Application {
                     }
                     convertDBtoElementTree.StringToElementList(brokenLineList);
                 });
-        convertDBtoElementTree.calculateElementProperties();
+        convertDBtoElementTree.calculateElementProperties();    
         Map<Integer, Element> threadMapToRoot = convertDBtoElementTree.getThreadMapToRoot();
         Model model = graph.getModel();
         //        Iterate through the tree and create circle cells for each element found.
