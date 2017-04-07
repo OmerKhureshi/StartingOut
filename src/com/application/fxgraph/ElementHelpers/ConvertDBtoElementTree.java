@@ -25,7 +25,7 @@ public class ConvertDBtoElementTree {
     public void StringToElementList(List<String> line) {
         Element cur = null;
         parent = stack.peek();
-        String msg = line.get(3);
+        String msg = line.get(3);  // ToDo replace hardcoded indices with universal indices.
         switch (msg.toUpperCase()) {
             // If EventType is ENTER, the current Element is the child of the parent Element which was saved
             // in the previous run of this method.
@@ -40,6 +40,7 @@ public class ConvertDBtoElementTree {
 
             // If EventType is EXIT, not much to do. Except maintain the stack.
             case "EXIT":
+//                parent = cur.getParent();
                 System.out.println("Line: " + line);
                 stack.pop();
                 break;
@@ -50,7 +51,6 @@ public class ConvertDBtoElementTree {
                 IllegalStateException up = new IllegalStateException("EventType should be either ENTER OR EXIT");
                 throw up;  // Yuck! Not having any of that :(
         }
-
         // Save the root of each thread tree in the map along with its threadId.
         // The stack operation
         Integer threadId = Integer.valueOf(line.get(1));
