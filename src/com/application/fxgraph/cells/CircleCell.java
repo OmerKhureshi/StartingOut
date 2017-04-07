@@ -14,7 +14,7 @@ public class CircleCell extends Cell {
         double height = 10;
 
 //        Polygon view = new Polygon( width / 2, 0, width, height, 0, height);
-        Circle view = new Circle(50);
+        Circle view = new Circle(20);
 
         view.setStroke(Color.RED);
         view.setFill(Color.RED);

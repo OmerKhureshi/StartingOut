@@ -16,6 +16,14 @@ public class DatabaseUtil {
 
       //Todo  Use apache connection pool to get database connection instance link: http://stackoverflow.com/a/6507820/3690248
 
+    public static boolean isTableCreated(String tableName) {
+        try(Connection c = DatabaseUtil.getConnection()) {
+            return c.getMetaData().getTables(null, null, tableName, null).next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
     private static Connection createDatabaseConnection() {
 
         String driver = "org.apache.derby.jdbc.EmbeddedDriver";
@@ -230,7 +238,7 @@ public class DatabaseUtil {
             ps = conn.createStatement();
 
             sql = "INSERT INTO " + METHOD_DEFINITION_TABLE + " VALUES(\n"+
-                    methodID + ",'" +
+                    methodID + ", '" +
                     packageName + "', '" +
                     methodName + "', '" +
                     arguments + "'" +

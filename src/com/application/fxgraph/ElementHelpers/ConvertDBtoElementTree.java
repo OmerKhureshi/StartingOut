@@ -16,6 +16,7 @@ public class ConvertDBtoElementTree {
     Element grandParent = null;
     // Used internally to save state of the Element in the previous run of this method.
     Element parent = null;
+    Element cur = null;
     public ArrayList<Element> rootsList;
 
     public ConvertDBtoElementTree() {
@@ -23,32 +24,29 @@ public class ConvertDBtoElementTree {
     }
 
     public void StringToElementList(List<String> line) {
-        Element cur = null;
-        parent = stack.peek();
+//        parent = stack.peek();
         String msg = line.get(3);  // ToDo replace hardcoded indices with universal indices.
         switch (msg.toUpperCase()) {
-            // If EventType is ENTER, the current Element is the child of the parent Element which was saved
+            // If EventType is ENTER, the current Element is the child of the parent dElement which was saved
             // in the previous run of this method.
             // If this method is invoked for the first time or if this is the first
             // Element with the thread id then this Element is the root of the Tree for the thread id
             // and its parent is null.
             case "ENTER":   // Todo Use int codes instead of String like "ENTER":
+                parent = cur;
                 cur = new Element(parent);
-                stack.push(cur);
-                System.out.println("Line: " + line);
+//                stack.push(cur);
                 break;
 
             // If EventType is EXIT, not much to do. Except maintain the stack.
             case "EXIT":
-//                parent = cur.getParent();
-                System.out.println("Line: " + line);
-                stack.pop();
+                cur = cur.getParent();
+//                stack.pop();
                 break;
 
             // The default case is when the EventType does not have the valid value. This is BAD! THROW UP IMMEDIATELY!
             default:
-                System.out.println("This is the yucky part: " + line);
-                IllegalStateException up = new IllegalStateException("EventType should be either ENTER OR EXIT");
+                IllegalStateException up = new IllegalStateException("EventType should be either ENTER OR EXIT. This line caused exception: " + line);
                 throw up;  // Yuck! Not having any of that :(
         }
         // Save the root of each thread tree in the map along with its threadId.
@@ -77,7 +75,6 @@ public class ConvertDBtoElementTree {
                 System.out.println(">>> root added to grandparent." + cur);
             }
         }
-
         // Problem: How to keep track of root elements.
         // soln: Used thread id as a criteria to store roots of unique threads.
     }

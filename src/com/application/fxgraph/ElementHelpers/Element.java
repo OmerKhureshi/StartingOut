@@ -4,12 +4,15 @@ import com.application.fxgraph.cells.CircleCell;
 import com.application.fxgraph.graph.BoundBox;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Element class represent each method invocation on the UI. To avoid confusion, it has not been named as Node, which is
  * used by JavaFX or Cell, which is used for a different purpose here.
  */
 public class Element {
+    private static final AtomicInteger count = new AtomicInteger(0);
+    private int elementId;
     private Element parent;
     private List<Element> children;
     private int indexInParent;
@@ -21,17 +24,8 @@ public class Element {
 
     private int coordMultiplier = 1;
 
-    public CircleCell getCircleCell() {
-        return circleCell;
-    }
-
-    public void setCircleCell(CircleCell circleCell) {
-        this.circleCell = circleCell;
-    }
-
-    public CircleCell circleCell = null;
-
     public Element(Element parent) {
+        elementId = count.incrementAndGet();
         this.parent = parent;
         if (parent != null ) {
             // If this element has a parent.
@@ -43,6 +37,20 @@ public class Element {
             setIndexInParent(0);
         }
     }
+
+    public int getElementId() {
+        return elementId;
+    }
+
+    public CircleCell getCircleCell() {
+        return circleCell;
+    }
+
+    public void setCircleCell(CircleCell circleCell) {
+        this.circleCell = circleCell;
+    }
+
+    public CircleCell circleCell = null;
 
     public int getIndexInParent() {
         return indexInParent;

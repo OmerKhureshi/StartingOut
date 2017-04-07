@@ -53,34 +53,34 @@ public class Main extends Application {
         // Check log file integrity.
         CheckFileIntegrity.checkFile(CallTraceLogFile.getFile());
 
-        try {
-            DatabaseUtil.dropCallTrace(); DatabaseUtil.dropMethodDefn();
-            DatabaseUtil.createCallTrace(); DatabaseUtil.createMethodDefn();
+//        try {
+//            DatabaseUtil.dropCallTrace(); DatabaseUtil.dropMethodDefn();
+//            DatabaseUtil.createCallTrace(); DatabaseUtil.createMethodDefn();
+//
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        } catch (ClassNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (InstantiationException e) {
+//            e.printStackTrace();
+//        } catch (IllegalAccessException e) {
+//            e.printStackTrace();
+//        }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
-        new ParseCallTrace().readFile(MethodDefinitionLogFile.getFile(),
-                brokenLineList -> {
-                    try {
-                        DatabaseUtil.insertMDStmt(brokenLineList);
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (InstantiationException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
-                });
+//        new ParseCallTrace().readFile(MethodDefinitionLogFile.getFile(),
+//                brokenLineList -> {
+//                    try {
+//                        DatabaseUtil.insertMDStmt(brokenLineList);
+//                    } catch (SQLException e) {
+//                        e.printStackTrace();
+//                    } catch (ClassNotFoundException e) {
+//                        e.printStackTrace();
+//                    } catch (InstantiationException e) {
+//                        e.printStackTrace();
+//                    } catch (IllegalAccessException e) {
+//                        e.printStackTrace();
+//                    }
+//                });
 
         List<List<String>> list = new ArrayList<>();
         final ConvertDBtoElementTree convertDBtoElementTree = new ConvertDBtoElementTree();
