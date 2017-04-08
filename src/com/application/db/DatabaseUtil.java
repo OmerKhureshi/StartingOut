@@ -186,7 +186,7 @@ public class DatabaseUtil {
         try {
             ps = conn.createStatement();
 
-            System.out.println("value of callTraceTableCreated: " + callTraceTableCreated);
+//            System.out.println("value of callTraceTableCreated: " + callTraceTableCreated);
             sql = "INSERT INTO " + CALL_TRACE_TABLE + " VALUES(\n"+
                     processID +","+
                     threadID +","+
@@ -195,7 +195,7 @@ public class DatabaseUtil {
                     parameters +
                     "')";
 
-            System.out.println("Inserting into call trace the statement: " + sql);
+//            System.out.println("Inserting into call trace the statement: " + sql);
             ps.executeUpdate(sql);
             ps.close();
             ps = null;

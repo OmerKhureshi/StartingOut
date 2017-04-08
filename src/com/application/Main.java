@@ -1,5 +1,7 @@
 package com.application;
 
+import com.application.db.DAOImplementation.ElementDAOImpl;
+import com.application.db.DAOImplementation.ElementToChildDAOImpl;
 import com.application.db.DatabaseUtil;
 import com.application.fxgraph.ElementHelpers.ConvertDBtoElementTree;
 import com.application.fxgraph.ElementHelpers.Element;
@@ -53,19 +55,25 @@ public class Main extends Application {
         // Check log file integrity.
         CheckFileIntegrity.checkFile(CallTraceLogFile.getFile());
 
-//        try {
-//            DatabaseUtil.dropCallTrace(); DatabaseUtil.dropMethodDefn();
-//            DatabaseUtil.createCallTrace(); DatabaseUtil.createMethodDefn();
-//
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        } catch (ClassNotFoundException e) {
-//            e.printStackTrace();
-//        } catch (InstantiationException e) {
-//            e.printStackTrace();
-//        } catch (IllegalAccessException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            DatabaseUtil.dropCallTrace();
+            DatabaseUtil.createCallTrace();
+
+            ElementDAOImpl.dropTable();
+            ElementToChildDAOImpl.dropTable();
+
+//            DatabaseUtil.dropMethodDefn();
+//            DatabaseUtil.createMethodDefn();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
 
 //        new ParseCallTrace().readFile(MethodDefinitionLogFile.getFile(),
 //                brokenLineList -> {
@@ -101,7 +109,7 @@ public class Main extends Application {
                     }
                     convertDBtoElementTree.StringToElementList(brokenLineList);
                 });
-        convertDBtoElementTree.calculateElementProperties();    
+        convertDBtoElementTree.calculateElementProperties();
         Map<Integer, Element> threadMapToRoot = convertDBtoElementTree.getThreadMapToRoot();
         Model model = graph.getModel();
         //        Iterate through the tree and create circle cells for each element found.

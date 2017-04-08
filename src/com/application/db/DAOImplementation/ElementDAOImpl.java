@@ -15,12 +15,19 @@ public class ElementDAOImpl {
     private static boolean isTableCreated = false;
 
     public static boolean isTableCreated() {
-        if (!isTableCreated)  // No need to call DatabaseUtil method every time. Save time this way.
+//        System.out.println("starting isTableCreated");
+        if (!isTableCreated) {// No need to call DatabaseUtil method every time. Save time this way.
+//            System.out.println("ElementDAOImpl:isTableCreated: " + isTableCreated);
             isTableCreated = DatabaseUtil.isTableCreated(ELEMENT_TABLE);
+//            System.out.println("ElementDAOImpl:isTableCreated: " + isTableCreated);
+        }
+//        System.out.println("ending isTableCreated");
         return isTableCreated;
     }
 
     public static void createTable() {
+//        System.out.println("starting createTable");
+//        System.out.println("ElementDAOImpl:createTable: " + isTableCreated());
         if (!isTableCreated()) {
             try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
                 String sql = "CREATE TABLE " + ELEMENT_TABLE + " (\n" +
@@ -38,24 +45,28 @@ public class ElementDAOImpl {
                         "    \"bound_box_x_coordinate\" FLOAT, \n" +
                         "    \"bound_box_y_coordinate\" FLOAT, \n" +
                         // Other properties
-                        "    \"index_in_parent\" INTEGER,\n" +
-                        "    \"leaf_count\" INTEGER,\n" +
+                        "    \"index_in_parent\" INTEGER, \n" +
+                        "    \"leaf_count\" INTEGER, \n" +
                         "    \"level_count\" INTEGER\n" +
                         /*"   FOREIGN KEY(\"methodID\") REFERENCES METHOD(\"methodID\")"+ */
                         ")";
                 ps.execute(sql);
+//                System.out.println("Creating table " + TableNames.ELEMENT_TABLE);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
+//        System.out.println("ending createTable");
     }
 
     public static void insert(Element element) {
-        if (!isTableCreated)
+//        System.out.println("starting insert");
+//        System.out.println("ElementDAOImpl:insert: " + isTableCreated());
+        if (!isTableCreated())
             createTable();
-
+        String sql = null;
         try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
-            String sql = "INSERT INTO " + TableNames.ELEMENT_TABLE + " VALUES " +
+            sql = "INSERT INTO " + TableNames.ELEMENT_TABLE + " VALUES (" +
                     element.getElementId() + ", " +
                     (element.getParent() == null? -1 : element.getParent().getElementId()) + ", " +
                     element.getBoundBox().xTopLeft + ", " +
@@ -73,8 +84,27 @@ public class ElementDAOImpl {
                     element.getLevelCount() + ")";
 
             ps.execute(sql);
+            System.out.println(TableNames.ELEMENT_TABLE + ": Inserted: " + sql);
         } catch (SQLException e) {
+            System.out.println(" Exception caused by: " + sql);
             e.printStackTrace();
         }
+//        System.out.println("ending insert");
     }
+
+    public static void dropTable() {
+//        System.out.println("starting dropTable");
+        if (isTableCreated()) {
+            try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
+                String sql= "Drop table " + TableNames.ELEMENT_TABLE;
+//                System.out.println("ELEMENT_TABLE dropped");
+                ps.execute(sql);
+                isTableCreated = false;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+//        System.out.println("ending dropTable");
+    }
+
 }

@@ -1,6 +1,9 @@
 package com.application.fxgraph.ElementHelpers;
 
+import com.application.db.DAOImplementation.ElementDAOImpl;
+import com.application.db.DAOImplementation.ElementToChildDAOImpl;
 import com.application.fxgraph.ElementHelpers.Element;
+import com.sun.javafx.collections.ElementObservableListDecorator;
 
 import java.util.*;
 
@@ -32,16 +35,20 @@ public class ConvertDBtoElementTree {
             // If this method is invoked for the first time or if this is the first
             // Element with the thread id then this Element is the root of the Tree for the thread id
             // and its parent is null.
-            case "ENTER":   // Todo Use int codes instead of String like "ENTER":
+            case "ENTER":   // Todo Performance: Use int codes instead of String like "ENTER":
+                System.out.println(">>>>>>>>>> ENTER");
                 parent = cur;
                 cur = new Element(parent);
-//                stack.push(cur);
 
+                //                stack.push(cur);
+                if (parent != null) {
+                    ElementToChildDAOImpl.insert(parent.getElementId(), cur.getElementId());
+                }
 
                 break;
 
-            // If EventType is EXIT, not much to do. Except maintain the stack.
             case "EXIT":
+                System.out.println(">>>>>>>>>> EXIT");
                 cur = cur.getParent();
 //                stack.pop();
                 break;
@@ -55,32 +62,54 @@ public class ConvertDBtoElementTree {
         // The stack operation
         Integer threadId = Integer.valueOf(line.get(1));
 
-        //        if (parent == null) {
         //            // todo figure out storing thread id.
-        //            rootsList.add(cur);
-        //        }
 
 
-        // Need a null root node that is the parent of all the grandparent nodes.
-        // grandparent elements are parents of all the root elements for a specific thread id.
-        if (parent == null) {
+        if (parent == null && !msg.equalsIgnoreCase("EXIT")) {
+            // How is this not executed when event type is exit?
             if (!threadMapToRoot.containsKey(threadId)) {
-                Element grandParent = new Element(null);
+                System.out.println(">>>>>>>> parent null loop 1");
+                grandParent = new Element(null);
                 grandParent.setChildren(new ArrayList<>(Arrays.asList(cur)));
                 cur.setParent(grandParent);
                 threadMapToRoot.put(threadId, grandParent);
-                System.out.println(">>> New grandparent added. and root added to it. " + cur);
+                // insert grandParent
+                defaultInitialize(grandParent);
+                ElementDAOImpl.insert(grandParent);
+                System.out.println(">>> New grandparent inserted and linked to child.");
             } else {
+                System.out.println(">>>>>>>> parent null loop 2");
                 Element grandparent = threadMapToRoot.get(threadId);   // Get grandParent root for the current threadId
                 grandparent.setChildren(new ArrayList<>(Collections.singletonList(cur)));       // set the current element as the child of the grandParent element.
                 cur.setParent(grandparent);
-                System.out.println(">>> root added to grandparent." + cur);
+                System.out.println(">>> root added to grandparent.");
             }
+            // Insert grandparent <-> cur element relation
+            ElementToChildDAOImpl.insert(grandParent.getElementId(), cur.getElementId());
+        }
+
+        if ( msg.equalsIgnoreCase("ENTER")) {
+            System.out.println(">>>>>>>>>>>>>  Loop ENTER");
+            // Insert cur element.
+            defaultInitialize(cur);
+            ElementDAOImpl.insert(cur);
         }
         // Problem: How to keep track of root elements.
         // soln: Used thread id as a criteria to store roots of unique threads.
     }
 
+    private void defaultInitialize(Element element) {
+        cur.setLeafCount(-1);
+        cur.setLevelCount(-1);
+        cur.getBoundBox().xTopLeft = -1;
+        cur.getBoundBox().yTopLeft = -1;
+        cur.getBoundBox().xTopRight = -1;
+        cur.getBoundBox().yTopRight = -1;
+        cur.getBoundBox().xBottomRight = -1;
+        cur.getBoundBox().yBottomRight = -1;
+        cur.getBoundBox().xBottomLeft = -1;
+        cur.getBoundBox().yBottomLeft = -1;
+    }
     public Map<Integer, Element> getThreadMapToRoot() {
         return threadMapToRoot;
     }

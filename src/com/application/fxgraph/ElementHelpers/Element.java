@@ -117,8 +117,7 @@ public class Element {
         return leafCount;
     }
 
-    private void setLeafCount(int leafCount) {
-        isLeafCountSet = true;
+    public void setLeafCount(int leafCount) {
         this.leafCount = leafCount;
     }
 
@@ -204,14 +203,11 @@ public class Element {
             // If this element is the root of the tree.
             boundBox.xTopLeft= 0;
             boundBox.yTopLeft = 0;
-            System.out.println("second loop: getParent(): " + getParent() + " getIndexInParent(): " + getIndexInParent());
         } else {
             // If this element is the first child of its parent element.
             BoundBox parentBB = getParent().boundBox;
-
             boundBox.xTopLeft = parentBB.xTopRight;
             boundBox.yTopLeft = parentBB.yTopRight;
-            System.out.println("third loop: getParent(): " + getParent() + " getIndexInParent(): " + getIndexInParent());
         }
 
         boundBox.xTopRight = boundBox.xTopLeft + boundBox.unitWidthFactor;
