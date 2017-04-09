@@ -111,9 +111,6 @@ public class Element {
 
     public int getLeafCount() {
         // ToDo add exception if calculateleafCount was not invoked.
-        if (!isLeafCountSet)
-            return -10;
-//            throw new IllegalAccessException("Leaf count is accessed before calulating it.");
         return leafCount;
     }
 
@@ -197,7 +194,6 @@ public class Element {
 
             boundBox.xTopLeft = sibBB.xBottomLeft;
             boundBox.yTopLeft = sibBB.yBottomLeft;
-            System.out.println("first loop: getParent(): " + getParent() + " getIndexInParent(): " + getIndexInParent());
         } else if (getParent() == null) {
 
             // If this element is the root of the tree.

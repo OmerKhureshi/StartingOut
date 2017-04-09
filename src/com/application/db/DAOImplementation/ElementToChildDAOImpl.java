@@ -44,7 +44,7 @@ public class ElementToChildDAOImpl {
                     childId +
                     ")";
             ps.execute(sql);
-            System.out.println(TableNames.ELEMENT_TO_CHILD_TABLE + ": Inserted: " + sql);
+//            System.out.println(TableNames.ELEMENT_TO_CHILD_TABLE + ": Inserted: " + sql);
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -250,7 +250,7 @@ public class DatabaseUtil {
             conn.close();
             conn = null;
 
-            System.out.println("Inserted into method defn. ");
+//            System.out.println("Inserted into method defn. ");
         } catch (SQLException e) {
             System.out.println(">>>error causing sql: "+sql);
             e.printStackTrace();

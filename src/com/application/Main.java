@@ -10,20 +10,14 @@ import com.application.fxgraph.graph.CellType;
 import com.application.fxgraph.graph.Graph;
 import com.application.fxgraph.graph.Model;
 import com.application.logs.fileHandler.CallTraceLogFile;
-import com.application.logs.fileHandler.MethodDefinitionLogFile;
 import com.application.logs.fileIntegrity.CheckFileIntegrity;
 import com.application.logs.parsers.ParseCallTrace;
-import com.application.logs.parsers.ParseMethodDefinition;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import org.apache.derby.iapi.db.Database;
 
-import javax.xml.crypto.Data;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class Main extends Application {
@@ -65,17 +59,11 @@ public class Main extends Application {
 //            DatabaseUtil.dropMethodDefn();
 //            DatabaseUtil.createMethodDefn();
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (SQLException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
 
-//        new ParseCallTrace().readFile(MethodDefinitionLogFile.getFile(),
+        //        new ParseCallTrace().readFile(MethodDefinitionLogFile.getFile(),
 //                brokenLineList -> {
 //                    try {
 //                        DatabaseUtil.insertMDStmt(brokenLineList);
@@ -90,21 +78,13 @@ public class Main extends Application {
 //                    }
 //                });
 
-        List<List<String>> list = new ArrayList<>();
         final ConvertDBtoElementTree convertDBtoElementTree = new ConvertDBtoElementTree();
         new ParseCallTrace().readFile(CallTraceLogFile.getFile(),
                 //        new ParseMethodDefinition().readFile(MethodDefinitionLogFile.getFile(),
                 brokenLineList -> {
-                    list.add(brokenLineList);
                     try {
                         DatabaseUtil.insertCTStmt(brokenLineList);
-                    } catch (SQLException e) {  // Todo Create a custom exception class and clean this.
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (InstantiationException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
+                    } catch (SQLException | ClassNotFoundException | IllegalAccessException | InstantiationException e) {  // Todo Create a custom exception class and clean this.
                         e.printStackTrace();
                     }
                     convertDBtoElementTree.StringToElementList(brokenLineList);
@@ -112,12 +92,17 @@ public class Main extends Application {
         convertDBtoElementTree.calculateElementProperties();
         Map<Integer, Element> threadMapToRoot = convertDBtoElementTree.getThreadMapToRoot();
         Model model = graph.getModel();
-        //        Iterate through the tree and create circle cells for each element found.
+
+        // Iterate through tree and insert each element into  ELEMENT table.
+        // Also insert each parent child relation into ELEMENT_TO_CHILD table.
         threadMapToRoot.entrySet().stream()
-                .map(entry -> entry.getValue())
+                .map(Map.Entry::getValue)
+                .forEachOrdered(convertDBtoElementTree::recursivelyInsertElements);
+
+        // Iterate through the tree and create circle cells for each element found.
+        threadMapToRoot.entrySet().stream()
+                .map(Map.Entry::getValue)
                 .forEachOrdered(root -> createCircleCellsRecursively(root, model));
-        //        convertDBtoElementTree.rootsList.stream()
-        //                .forEachOrdered(root -> createCircleCellsRecursively(root, model));
 
         graph.endUpdate();
     }
@@ -133,9 +118,14 @@ public class Main extends Application {
         }
 
         if (root.getChildren() != null){
-            root.getChildren().stream()
-                    .forEachOrdered(ele -> createCircleCellsRecursively(ele, model));
+            root.getChildren()
+                    .forEach(ele -> createCircleCellsRecursively(ele, model));
         }
+
+//        if (root.getChildren() != null){
+//            root.getChildren().stream()
+//                    .forEachOrdered(ele -> createCircleCellsRecursively(ele, model));
+//        }
     }
 
     private void addGraphComponents() {

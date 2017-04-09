@@ -1,11 +1,12 @@
 package com.application.db.DAOImplementation;
 
-import com.application.db.DAOInterfaces.ElementDAOInterface;
 import com.application.db.DatabaseUtil;
 import com.application.db.TableNames;
 import com.application.fxgraph.ElementHelpers.Element;
 
+import javax.swing.plaf.nimbus.State;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -30,25 +31,22 @@ public class ElementDAOImpl {
 //        System.out.println("ElementDAOImpl:createTable: " + isTableCreated());
         if (!isTableCreated()) {
             try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
-                String sql = "CREATE TABLE " + ELEMENT_TABLE + " (\n" +
-                        "   \"id\" INTEGER NOT NULL, \n" +
-                        "    \"parent_id\" INTEGER, \n" +  // todo define foreign key
-                        // Bound Box properties.
-                        "    \"bound_box_x_top_left\" FLOAT, \n" +
-                        "    \"bound_box_y_top_left\" FLOAT, \n" +
-                        "    \"bound_box_x_top_right\" FLOAT, \n" +
-                        "    \"bound_box_y_top_right\" FLOAT, \n" +
-                        "    \"bound_box_x_bottom_right\" FLOAT, \n" +
-                        "    \"bound_box_y_bottom_right\" FLOAT, \n" +
-                        "    \"bound_box_x_bottom_left\" FLOAT, \n" +
-                        "    \"bound_box_y_bottom_left\" FLOAT, \n" +
-                        "    \"bound_box_x_coordinate\" FLOAT, \n" +
-                        "    \"bound_box_y_coordinate\" FLOAT, \n" +
-                        // Other properties
-                        "    \"index_in_parent\" INTEGER, \n" +
-                        "    \"leaf_count\" INTEGER, \n" +
-                        "    \"level_count\" INTEGER\n" +
-                        /*"   FOREIGN KEY(\"methodID\") REFERENCES METHOD(\"methodID\")"+ */
+                String sql = "CREATE TABLE " + ELEMENT_TABLE + " (" +
+                        "id INTEGER NOT NULL, " +
+                        "parent_id INTEGER, " +  // todo define foreign key
+                        "bound_box_x_top_left FLOAT, " +
+                        "bound_box_y_top_left FLOAT, " +
+                        "bound_box_x_top_right FLOAT, " +
+                        "bound_box_y_top_right FLOAT, " +
+                        "bound_box_x_bottom_right FLOAT, " +
+                        "bound_box_y_bottom_right FLOAT, " +
+                        "bound_box_x_bottom_left FLOAT, " +
+                        "bound_box_y_bottom_left FLOAT, " +
+                        "bound_box_x_coordinate FLOAT, " +
+                        "bound_box_y_coordinate FLOAT, " +
+                        "index_in_parent INTEGER, " +
+                        "leaf_count INTEGER, " +
+                        "level_count INTEGER" +
                         ")";
                 ps.execute(sql);
 //                System.out.println("Creating table " + TableNames.ELEMENT_TABLE);
@@ -84,7 +82,7 @@ public class ElementDAOImpl {
                     element.getLevelCount() + ")";
 
             ps.execute(sql);
-            System.out.println(TableNames.ELEMENT_TABLE + ": Inserted: " + sql);
+//            System.out.println(TableNames.ELEMENT_TABLE + ": Inserted: " + sql);
         } catch (SQLException e) {
             System.out.println(" Exception caused by: " + sql);
             e.printStackTrace();
@@ -106,5 +104,27 @@ public class ElementDAOImpl {
         }
 //        System.out.println("ending dropTable");
     }
+
+
+    static Connection conn;
+    static Statement ps;
+    public static ResultSet selectWhere(String where) {
+        if (isTableCreated()) {
+            try  {
+                conn = DatabaseUtil.getConnection();
+                ps = conn.createStatement();
+                String sql = "SELECT * FROM " + ELEMENT_TABLE + " WHERE " + where;
+                System.out.println(">>> we got " + sql);
+                ResultSet resultSet = ps.executeQuery(sql);
+//                resultSet.next();
+//                System.out.println(resultSet.getInt("id"));
+                return resultSet;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        throw new IllegalStateException("Table does not exist. Hence cannot fetch any rows from it.");
+    }
+
 
 }

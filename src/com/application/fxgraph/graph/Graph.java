@@ -11,7 +11,7 @@ public class Graph {
     private Group canvas;
 
     private ZoomableScrollPane scrollPane;
-
+//    private ScrollPane scrollPane;
     MouseGestures mouseGestures;
 
     /**
@@ -33,7 +33,7 @@ public class Graph {
         mouseGestures = new MouseGestures(this);
 
         scrollPane = new ZoomableScrollPane(canvas);
-
+//        scrollPane = new ScrollPane(canvas);
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
 
@@ -83,6 +83,7 @@ public class Graph {
     }
 
     public double getScale() {
+//        throw new IllegalStateException(">>>>>>>>>> Invoking getScale()");
         return this.scrollPane.getScaleValue();
     }
 }
