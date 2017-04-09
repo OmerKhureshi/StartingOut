@@ -68,7 +68,6 @@ public class Main extends Application {
 
 //            DatabaseUtil.dropMethodDefn();
 //            DatabaseUtil.createMethodDefn();
-
         } catch (SQLException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -90,13 +89,12 @@ public class Main extends Application {
 
         final ConvertDBtoElementTree convertDBtoElementTree = new ConvertDBtoElementTree();
         new ParseCallTrace().readFile(CallTraceLogFile.getFile(),
-                //        new ParseMethodDefinition().readFile(MethodDefinitionLogFile.getFile(),
                 brokenLineList -> {
-                    try {
-                        DatabaseUtil.insertCTStmt(brokenLineList);
-                    } catch (SQLException | ClassNotFoundException | IllegalAccessException | InstantiationException e) {  // Todo Create a custom exception class and clean this.
-                        e.printStackTrace();
-                    }
+                    // try {
+                    //     DatabaseUtil.insertCTStmt(brokenLineList);
+                    // } catch (SQLException | ClassNotFoundException | IllegalAccessException | InstantiationException e) {  // Todo Create a custom exception class and clean this.
+                    //     e.printStackTrace();
+                    // }
                     convertDBtoElementTree.StringToElementList(brokenLineList);
                 });
         convertDBtoElementTree.calculateElementProperties();
@@ -105,18 +103,14 @@ public class Main extends Application {
 
         // Iterate through tree and insert each element into  ELEMENT table.
         // Also insert each parent child relation into ELEMENT_TO_CHILD table.
-        threadMapToRoot.entrySet().stream()
-                .map(Map.Entry::getValue)
-                .forEachOrdered(convertDBtoElementTree::recursivelyInsertElementsIntoDB);
+        // threadMapToRoot.entrySet().stream()
+        //         .map(Map.Entry::getValue)
+        //         .forEachOrdered(convertDBtoElementTree::recursivelyInsertElementsIntoDB);
 
         // Iterate through the tree and create circle cells for each element found.
-//        threadMapToRoot.entrySet().stream()
-//                .map(Map.Entry::getValue)
-//                .forEachOrdered(root -> createCircleCellsRecursively(root, model));
-
-        Map<Integer, CircleCell> resMap = fromDBToUI();
-
-        nextRound(nextRound(resMap, 2), 3);
+        threadMapToRoot.entrySet().stream()
+                .map(Map.Entry::getValue)
+                .forEachOrdered(root -> createCircleCellsRecursively(root, model));
 
         graph.endUpdate();
     }
@@ -140,64 +134,6 @@ public class Main extends Application {
             model.addEdge(sourceCell, targetCell);
         }
     }
-
-    public Map<Integer, CircleCell> fromDBToUI() {
-        Map resMap = new HashMap<Integer, CircleCell>();
-        // Do fast
-        // monitor scroll hvalue changes and load more circles.
-        try {
-            ResultSet rs = ElementDAOImpl.selectWhere("parent_id = -1");
-            rs.next();
-            int grandParentId = rs.getInt("id");
-            float grandParentXCoordinate = rs.getFloat("bound_box_x_coordinate");
-            float grandParentYCoordinate = rs.getFloat("bound_box_y_coordinate");
-            CircleCell grandParentCell = new CircleCell(String.valueOf(grandParentId), grandParentXCoordinate, grandParentYCoordinate);
-            model.addCell(grandParentCell);
-
-            rs = ElementDAOImpl.selectWhere("parent_id = " + grandParentId);
-            while (rs.next()) {
-                int cellId = rs.getInt("id");
-                float cellXCoordinate = rs.getFloat("bound_box_x_coordinate");
-                float cellYCoordinate = rs.getFloat("bound_box_y_coordinate");
-                // For each level 1 element, draw on UI.
-                CircleCell targetCell = new CircleCell(String.valueOf(cellId), cellXCoordinate, cellYCoordinate);
-                model.addCell(targetCell);
-                model.addEdge(grandParentCell, targetCell);
-                resMap.put(cellId, targetCell);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return resMap;
-    }
-
-    /*
-    *
-    * */
-
-public Map<Integer, CircleCell> nextRound(Map<Integer, CircleCell> cellList, int levelCount) {
-    Map resMap = new HashMap<Integer, CircleCell>();
-    // draws circles on UI for passed level count.
-    try {
-        ResultSet rs = ElementDAOImpl.selectWhere("level_count = " + levelCount);
-        while (rs.next()) {
-            int cellId = rs.getInt("id");
-            float cellXCoordinate = rs.getFloat("bound_box_x_coordinate");
-            float cellYCoordinate = rs.getFloat("bound_box_y_coordinate");
-            int parentId = rs.getInt("parent_id");
-            CircleCell targetCell = new CircleCell(String.valueOf(cellId), cellXCoordinate, cellYCoordinate);
-            resMap.put(cellId, targetCell);
-            model.addCell(targetCell);
-            CircleCell parentCell = cellList.get(parentId);
-            model.addEdge(parentCell, targetCell);
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
-
-    return resMap;
-}
-
 
     private void addGraphComponents() {
 
