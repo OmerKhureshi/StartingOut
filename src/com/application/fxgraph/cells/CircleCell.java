@@ -25,8 +25,14 @@ public class CircleCell extends Cell {
     public CircleCell (String id, Element element) {
         this(id);
         this.relocate(
-                element.getBoundBox().xCord,
-                element.getBoundBox().yCord
+                element.getBoundBox().xCoordinate,
+                element.getBoundBox().yCoordinate
         );
     }
+    public CircleCell (String id, float xCoordinate, float yCoordinate) {
+        this(id);
+        this.relocate(xCoordinate, yCoordinate);
+    }
+
+
 }

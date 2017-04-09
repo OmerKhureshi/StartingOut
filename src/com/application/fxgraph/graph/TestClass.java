@@ -10,9 +10,31 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TestClass extends Application {
+
+    List listObj = new ArrayList<String>();
     @Override
     public void start(Stage stage) {
+        listObj.add("list item one");
+        listObj.add("list item one");
+        listObj.add("list item one");
+        listObj.add("list item one");
+        listObj.add("list item one");
+        listObj.add("list item one");
+        listObj.add("list item one");
+        listObj.add("list item one");
+        listObj.add("list item one");
+        listObj.add("list item one");
+        listObj.add("list item one");
+        listObj.add("list item one");
+        listObj.add("list item one");
+        listObj.add("list item one");
+        listObj.add("list item one");
+        listObj.add("list item one");
+        listObj.add("list item one");
         Rectangle content = new Rectangle(1000, 700, Color.GREEN);
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setPrefSize(400, 300);

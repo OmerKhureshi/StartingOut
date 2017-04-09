@@ -3,9 +3,6 @@ package com.application.fxgraph.ElementHelpers;
 import com.application.db.DAOImplementation.ElementDAOImpl;
 import com.application.db.DAOImplementation.ElementToChildDAOImpl;
 
-import javax.swing.text.html.Option;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 
 public class ConvertDBtoElementTree {
@@ -109,7 +106,7 @@ public class ConvertDBtoElementTree {
                 });
     }
 
-    public void recursivelyInsertElements(Element root) {
+    public void recursivelyInsertElementsIntoDB(Element root) {
         if (root == null)
             return;
         // Insert this element into the ELEMENT table.
@@ -120,31 +117,13 @@ public class ConvertDBtoElementTree {
                 root.getParent() == null? -1 : root.getParent().getElementId(),
                 root.getElementId());
 
-        System.out.println(root.getElementId() + " : " + root.getLevelCount()
-                + " : " + root.getLeafCount());
+//        System.out.println(root.getElementId() + " : " + root.getLevelCount()
+//                + " : " + root.getLeafCount());
 
         // Recursively call this same method on all the children of current element.
-//        Optional.ofNullable(root.getChildren()).ifPresent(list -> list.stream().forEachOrdered(this::recursivelyInsertElements));
+//        Optional.ofNullable(root.getChildren()).ifPresent(list -> list.stream().forEachOrdered(this::recursivelyInsertElementsIntoDB));
         if (root.getChildren() != null) {
-            root.getChildren().stream().forEachOrdered(this::recursivelyInsertElements);
-        }
-    }
-
-    public void fromDBToUI() {
-        // start with the level 0 and 1 elements and create circles for them.
-        // get element id of the grand parent elements.
-        // get element ids of all level 1 roots.
-        // display them.
-        try {
-            ResultSet rs = ElementDAOImpl.selectWhere("parent_id = -1");
-            rs.next();
-            int grandParentId = rs.getInt("id");
-            rs = ElementDAOImpl.selectWhere("parent_id = " + grandParentId);
-            while (rs.next()) {
-
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+            root.getChildren().stream().forEachOrdered(this::recursivelyInsertElementsIntoDB);
         }
     }
 }

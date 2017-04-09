@@ -16,8 +16,8 @@ public class BoundBox {
     public final int unitWidthFactor = 100; // The width of the rectangular space that contains a single element on UI
     public final int unitHeightFactor = 100;// The height of the rectangular space that contains a single element on UI
 
-    public float xCord;
-    public float yCord;
+    public float xCoordinate;
+    public float yCoordinate;
 
     @Override
     public String toString() {
@@ -32,8 +32,8 @@ public class BoundBox {
                 ", yBottomLeft=" + yBottomLeft +
                 ", unitWidthFactor=" + unitWidthFactor +
                 ", unitHeightFactor=" + unitHeightFactor +
-                ", xCord=" + xCord +
-                ", yCord=" + yCord +
+                ", xCoordinate=" + xCoordinate +
+                ", yCoordinate=" + yCoordinate +
                 '}';
     }
 }

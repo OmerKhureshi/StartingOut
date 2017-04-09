@@ -107,12 +107,9 @@ public class Model {
         return circleCell;
     }
 
-    private void addCell( Cell cell) {
-
+    public void addCell( Cell cell) {
         addedCells.add(cell);
-
         cellMap.put( cell.getCellId(), cell);
-
     }
 
     public void addEdge(CircleCell sourceCell, CircleCell targetCell) {

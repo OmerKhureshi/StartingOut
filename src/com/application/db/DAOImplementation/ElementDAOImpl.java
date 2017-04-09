@@ -4,7 +4,6 @@ import com.application.db.DatabaseUtil;
 import com.application.db.TableNames;
 import com.application.fxgraph.ElementHelpers.Element;
 
-import javax.swing.plaf.nimbus.State;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -75,8 +74,8 @@ public class ElementDAOImpl {
                     element.getBoundBox().yBottomRight + ", " +
                     element.getBoundBox().xBottomLeft + ", " +
                     element.getBoundBox().yBottomLeft + ", " +
-                    element.getBoundBox().xCord + ", " +
-                    element.getBoundBox().yCord + ", " +
+                    element.getBoundBox().xCoordinate + ", " +
+                    element.getBoundBox().yCoordinate + ", " +
                     element.getIndexInParent() + ", " +
                     element.getLeafCount() + ", " +
                     element.getLevelCount() + ")";
@@ -105,7 +104,6 @@ public class ElementDAOImpl {
 //        System.out.println("ending dropTable");
     }
 
-
     static Connection conn;
     static Statement ps;
     public static ResultSet selectWhere(String where) {
@@ -114,7 +112,7 @@ public class ElementDAOImpl {
                 conn = DatabaseUtil.getConnection();
                 ps = conn.createStatement();
                 String sql = "SELECT * FROM " + ELEMENT_TABLE + " WHERE " + where;
-                System.out.println(">>> we got " + sql);
+//                System.out.println(">>> we got " + sql);
                 ResultSet resultSet = ps.executeQuery(sql);
 //                resultSet.next();
 //                System.out.println(resultSet.getInt("id"));

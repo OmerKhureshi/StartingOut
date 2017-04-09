@@ -215,8 +215,8 @@ public class Element {
         boundBox.xBottomRight = boundBox.xTopRight;
         boundBox.yBottomRight = boundBox.yBottomLeft;
 
-        boundBox.xCord = boundBox.xTopLeft + (boundBox.xTopRight - boundBox.xTopLeft) / 2;  // Use this instead of just adding and dividing by 2 to avoid overflow.
-        boundBox.yCord = boundBox.yTopLeft + (boundBox.yBottomLeft - boundBox.yTopLeft) / 2;  // Use this instead of just adding and dividing by 2 to avoid overflow.
+        boundBox.xCoordinate = boundBox.xTopLeft + (boundBox.xTopRight - boundBox.xTopLeft) / 2;  // Use this instead of just adding and dividing by 2 to avoid overflow.
+        boundBox.yCoordinate = boundBox.yTopLeft + (boundBox.yBottomLeft - boundBox.yTopLeft) / 2;  // Use this instead of just adding and dividing by 2 to avoid overflow.
 
         setCoordMultiplier(coordMultiplier);
     }
@@ -268,7 +268,7 @@ public class Element {
     public void setCoordMultiplier(int coordMultiplier) {
         this.coordMultiplier = coordMultiplier;
 
-//        boundBox.xCord *= coordMultiplier;
-//        boundBox.yCord *= coordMultiplier;
+//        boundBox.xCoordinate *= coordMultiplier;
+//        boundBox.yCoordinate *= coordMultiplier;
     }
 }

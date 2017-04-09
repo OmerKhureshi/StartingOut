@@ -111,10 +111,8 @@ public class ZoomableScrollPane extends ScrollPane {
     private class ZoomHandler implements EventHandler<ScrollEvent> {
         @Override
         public void handle(ScrollEvent scrollEvent) {
+
             Bounds bounds = getViewportBounds();
-            int lowestXPixelShown = -1 * (int)bounds.getMinX() + 1;
-            int highestXPixelShown = -1 * (int)bounds.getMinX() + (int)bounds.getMaxX();
-            System.out.println("Scroll pane: viewportBounds " + lowestXPixelShown + " : " + highestXPixelShown );
             if (scrollEvent.isControlDown())
             {
                 if (scrollEvent.getDeltaY() < 0) {
