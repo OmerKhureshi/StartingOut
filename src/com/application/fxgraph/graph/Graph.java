@@ -4,6 +4,7 @@ import javafx.geometry.BoundingBox;
 import javafx.scene.Group;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Line;
 
 public class Graph {
 
@@ -30,6 +31,8 @@ public class Graph {
         cellLayer = new CellLayer();
 
         canvas.getChildren().add(cellLayer);
+        // canvas.getChildren().add(new Line(0, 0, 100, 0));
+        // canvas.getChildren().add(new Line(0, 0, 0, 100));
 
         mouseGestures = new MouseGestures(this);
 
@@ -52,6 +55,14 @@ public class Graph {
     }
 
     public void beginUpdate() {
+    }
+
+    public void myEndUpdate() {
+        getCellLayer().getChildren().addAll(model.newCircleCells);
+        getCellLayer().getChildren().addAll(model.newEdges);
+
+        model.clearNewCircleCells();
+        model.clearNewEdges();
     }
 
     public void endUpdate() {

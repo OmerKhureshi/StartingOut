@@ -8,6 +8,8 @@ public class Edge extends Group {
     protected Cell source;
     protected Cell target;
 
+    private String edgeId;
+
     Line line;
 
     public Edge(Cell source, Cell target) {
@@ -28,6 +30,14 @@ public class Edge extends Group {
 
         getChildren().add( line);
 
+    }
+
+    public String getEdgeId() {
+        return edgeId;
+    }
+
+    public void setEdgeId(String edgeId) {
+        this.edgeId = edgeId;
     }
 
     public Cell getSource() {

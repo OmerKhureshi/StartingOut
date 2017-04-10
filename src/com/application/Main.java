@@ -89,7 +89,6 @@ public class Main extends Application {
 
         convertDBtoElementTree = new ConvertDBtoElementTree();
         new ParseCallTrace().readFile(CallTraceLogFile.getFile(),
-                //        new ParseMethodDefinition().readFile(MethodDefinitionLogFile.getFile(),
                 brokenLineList -> {
                     try {
                         DatabaseUtil.insertCTStmt(brokenLineList);
@@ -114,9 +113,8 @@ public class Main extends Application {
 //                .forEachOrdered(root -> createCircleCellsRecursively(root, model));
 
         // Map<Integer, CircleCell> resMap = fromDBToUI();
-
         // nextRound(nextRound(resMap, 2), 3);
-
+        onScrollingScrollPane();
         graph.endUpdate();
     }
 
@@ -193,15 +191,25 @@ public class Main extends Application {
     return resMap;
 }
 
-
     public void onScrollingScrollPane() {
         List<Map> result = convertDBtoElementTree.getCirclesToLoadIntoViewPort(graph.getScrollPane());
-        result.get(0).entrySet().stream()
-                .forEach(cell -> model.addCell((CircleCell) cell));
-        result.get(1).entrySet().stream()
-                .forEach(edge -> model.addEdge((Edge) edge));
+        ((HashMap<String, CircleCell>)result.get(0)).entrySet().stream()
+                .map(entry -> entry.getValue())
+                .forEach(cell -> model.addCell(cell));
+
+        ((HashMap<String, Edge>)result.get(1)).entrySet().stream()
+                .map(entry -> entry.getValue())
+                .forEach(edge -> model.addEdge(edge));
 
         graph.endUpdate();
+
+        /*
+        * Maintain a single map of circles currently on UI. It is maintained by modelclass
+        * Maintain similar map for Edges. Key would be element id of the target circle. maintained by model class
+        * use these maps to see if circles and edges are already present on screen before drawing.
+        *
+        * logic of adding new cells and edges should be handled by graph or model.
+        * */
     }
 
     private void addGraphComponents() {

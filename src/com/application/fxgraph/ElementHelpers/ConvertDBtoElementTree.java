@@ -7,8 +7,6 @@ import com.application.fxgraph.graph.Edge;
 import com.application.fxgraph.graph.Graph;
 import javafx.geometry.BoundingBox;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.shape.Circle;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -128,6 +126,8 @@ public class ConvertDBtoElementTree {
     }
 
     public List<Map> getCirclesToLoadIntoViewPort(ScrollPane scrollPane) {
+        Map<String, CircleCell> mapCircleCell = new HashMap<>();
+        Map<String, Edge> mapEdge = new HashMap<>();
         // get current view port.
         BoundingBox boundingBox = Graph.getViewPortDims(scrollPane);
         // get all elements in the that area.
@@ -142,23 +142,22 @@ public class ConvertDBtoElementTree {
 
         ResultSet rs = ElementDAOImpl.selectWhere(whereClause);
         // return a list of circle cells back to the calling method.
-        Map<String, CircleCell> mapCircleCell = new HashMap<>();
-        Map<String, Edge> mapEdge = new HashMap<>();
         try {
             while (rs.next()) {
                 String id = String.valueOf(rs.getInt("id"));
                 float xCoordinate = rs.getFloat("bound_box_x_coordinate");
                 float yCoordinate = rs.getFloat("bound_box_y_coordinate");
                 String parentId = String.valueOf(rs.getInt("parent_id"));
+                System.out.println("Yes we know you are scrolling. Just that no more new circles to load.");
                 if (!mapCircleCell.containsKey(id)) {
                     CircleCell curCircleCell = new CircleCell(id, xCoordinate, yCoordinate);
                     mapCircleCell.put(id, curCircleCell);
-                    System.out.println("Dynamic fetch: " + rs.getInt("id"));
+                    System.out.println("Newly fetched circles : " + rs.getInt("id"));
                     // add edge.
                     CircleCell parentCircleCell = mapCircleCell.get(parentId);
-                    if (parentCircleCell == null) {
+                    if (!mapCircleCell.containsKey(parentId)) {
                         // create parent circle cell
-                        ResultSet rsTemp = ElementDAOImpl.selectWhere("id == " + parentId);
+                        ResultSet rsTemp = ElementDAOImpl.selectWhere("id = " + parentId);
                         if (rsTemp.next()) {
                             float xCoordinateTemp = rsTemp.getFloat("bound_box_x_coordinate");
                             float yCoordinateTemp = rsTemp.getFloat("bound_box_y_coordinate");
@@ -166,7 +165,9 @@ public class ConvertDBtoElementTree {
                             mapCircleCell.put(parentId, parentCircleCell);
                         }
                     }
-                    mapEdge.put(id, new Edge(parentCircleCell, curCircleCell));
+                    if (parentCircleCell != null && curCircleCell != null) {
+                        mapEdge.put(id, new Edge(parentCircleCell, curCircleCell));
+                    }
                 }
             }
         } catch (SQLException e) {

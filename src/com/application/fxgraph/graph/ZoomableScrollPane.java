@@ -1,7 +1,10 @@
 package com.application.fxgraph.graph;
 
 import com.application.Main;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
@@ -25,13 +28,13 @@ public class ZoomableScrollPane extends ScrollPane {
         setContent(contentGroup);
         scaleTransform = new Scale(scaleValue, scaleValue, 0, 0);
         zoomGroup.getTransforms().add(scaleTransform);
-
         zoomGroup.setOnScroll(new ZoomHandler());
     }
 
     public void setSomething(Main m) {
         main = m;
     }
+
     public double getScaleValue() {
         return scaleValue;
     }
@@ -41,12 +44,9 @@ public class ZoomableScrollPane extends ScrollPane {
     }
 
     public void zoomTo(double scaleValue) {
-
         this.scaleValue = scaleValue;
-
         scaleTransform.setX(scaleValue);
         scaleTransform.setY(scaleValue);
-
     }
 
     public void zoomActual() {
