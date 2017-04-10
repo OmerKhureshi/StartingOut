@@ -1,5 +1,6 @@
 package com.application.fxgraph.graph;
 
+import javafx.geometry.BoundingBox;
 import javafx.scene.Group;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Pane;
@@ -36,7 +37,6 @@ public class Graph {
 //        scrollPane = new ScrollPane(canvas);
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
-
     }
 
     public ScrollPane getScrollPane() {
@@ -85,5 +85,23 @@ public class Graph {
     public double getScale() {
 //        throw new IllegalStateException(">>>>>>>>>> Invoking getScale()");
         return this.scrollPane.getScaleValue();
+    }
+
+    public static BoundingBox getViewPortDims(ScrollPane scrollPane) {
+        // http://stackoverflow.com/questions/26240501/javafx-scrollpane-update-viewportbounds-on-scroll
+        double hValue = scrollPane.getHvalue();
+        double contentWidth = scrollPane.getContent().getLayoutBounds().getWidth();
+        double viewportWidth = scrollPane.getViewportBounds().getWidth();
+
+        double vValue = scrollPane.getVvalue();
+        double contentHeight = scrollPane.getContent().getLayoutBounds().getHeight();
+        double viewportHeight = scrollPane.getViewportBounds().getHeight();
+
+        double minX = hValue * (contentWidth - viewportWidth);
+        double minY = vValue * (contentHeight - viewportHeight);
+
+        BoundingBox boundingBox = new BoundingBox(minX, minY, minX + viewportHeight, minY + viewportHeight);
+        System.out.println("Graph:getViewPortDims: " + boundingBox.toString());
+        return boundingBox;
     }
 }

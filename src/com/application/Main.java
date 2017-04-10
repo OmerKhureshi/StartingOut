@@ -6,21 +6,18 @@ import com.application.db.DatabaseUtil;
 import com.application.fxgraph.ElementHelpers.ConvertDBtoElementTree;
 import com.application.fxgraph.ElementHelpers.Element;
 import com.application.fxgraph.cells.CircleCell;
-import com.application.fxgraph.graph.CellType;
-import com.application.fxgraph.graph.Graph;
-import com.application.fxgraph.graph.Model;
+import com.application.fxgraph.graph.*;
 import com.application.logs.fileHandler.CallTraceLogFile;
 import com.application.logs.fileIntegrity.CheckFileIntegrity;
 import com.application.logs.parsers.ParseCallTrace;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.shape.Circle;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +27,7 @@ public class Main extends Application {
     // Part of code from http://stackoverflow.com/a/30696075/3690248
     Graph graph = new Graph();
     Model model;
+    ConvertDBtoElementTree convertDBtoElementTree;
 
     @Override
     public void start(Stage primaryStage) {
@@ -38,6 +36,7 @@ public class Main extends Application {
         graph = new Graph();
 
         root.setCenter(graph.getScrollPane());
+        ((ZoomableScrollPane)graph.getScrollPane()).setSomething(this);
 
         Scene scene = new Scene(root, 1024, 768);
         scene.getStylesheets().add(getClass().getResource("/application.css").toExternalForm());
@@ -88,7 +87,7 @@ public class Main extends Application {
 //                    }
 //                });
 
-        final ConvertDBtoElementTree convertDBtoElementTree = new ConvertDBtoElementTree();
+        convertDBtoElementTree = new ConvertDBtoElementTree();
         new ParseCallTrace().readFile(CallTraceLogFile.getFile(),
                 //        new ParseMethodDefinition().readFile(MethodDefinitionLogFile.getFile(),
                 brokenLineList -> {
@@ -114,9 +113,9 @@ public class Main extends Application {
 //                .map(Map.Entry::getValue)
 //                .forEachOrdered(root -> createCircleCellsRecursively(root, model));
 
-        Map<Integer, CircleCell> resMap = fromDBToUI();
+        // Map<Integer, CircleCell> resMap = fromDBToUI();
 
-        nextRound(nextRound(resMap, 2), 3);
+        // nextRound(nextRound(resMap, 2), 3);
 
         graph.endUpdate();
     }
@@ -171,11 +170,7 @@ public class Main extends Application {
         return resMap;
     }
 
-    /*
-    *
-    * */
-
-public Map<Integer, CircleCell> nextRound(Map<Integer, CircleCell> cellList, int levelCount) {
+    public Map<Integer, CircleCell> nextRound(Map<Integer, CircleCell> cellList, int levelCount) {
     Map resMap = new HashMap<Integer, CircleCell>();
     // draws circles on UI for passed level count.
     try {
@@ -198,6 +193,16 @@ public Map<Integer, CircleCell> nextRound(Map<Integer, CircleCell> cellList, int
     return resMap;
 }
 
+
+    public void onScrollingScrollPane() {
+        List<Map> result = convertDBtoElementTree.getCirclesToLoadIntoViewPort(graph.getScrollPane());
+        result.get(0).entrySet().stream()
+                .forEach(cell -> model.addCell((CircleCell) cell));
+        result.get(1).entrySet().stream()
+                .forEach(edge -> model.addEdge((Edge) edge));
+
+        graph.endUpdate();
+    }
 
     private void addGraphComponents() {
 

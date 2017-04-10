@@ -1,7 +1,7 @@
 package com.application.fxgraph.graph;
 
+import com.application.Main;
 import javafx.event.EventHandler;
-import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
@@ -14,6 +14,7 @@ public class ZoomableScrollPane extends ScrollPane {
     Node content;
     double scaleValue = 1.0;
     double delta = 0.1;
+    Main main;
 
     public ZoomableScrollPane(Node content) {
         this.content = content;
@@ -28,6 +29,9 @@ public class ZoomableScrollPane extends ScrollPane {
         zoomGroup.setOnScroll(new ZoomHandler());
     }
 
+    public void setSomething(Main m) {
+        main = m;
+    }
     public double getScaleValue() {
         return scaleValue;
     }
@@ -111,15 +115,14 @@ public class ZoomableScrollPane extends ScrollPane {
     private class ZoomHandler implements EventHandler<ScrollEvent> {
         @Override
         public void handle(ScrollEvent scrollEvent) {
-
-            Bounds bounds = getViewportBounds();
+            main.onScrollingScrollPane();
             if (scrollEvent.isControlDown())
             {
                 if (scrollEvent.getDeltaY() < 0) {
                     scaleValue -= delta;
                     if (scaleValue < .05)
                         scaleValue = .05;
-                    //                    scaleValue = Math.max(scaleValue, 0.05);
+                    scaleValue = Math.max(scaleValue, 0.05);
                 } else {
                     scaleValue += delta;
                 }

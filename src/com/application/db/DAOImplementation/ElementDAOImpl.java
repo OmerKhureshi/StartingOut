@@ -106,18 +106,20 @@ public class ElementDAOImpl {
 
     static Connection conn;
     static Statement ps;
+    static String sql;
     public static ResultSet selectWhere(String where) {
         if (isTableCreated()) {
             try  {
                 conn = DatabaseUtil.getConnection();
                 ps = conn.createStatement();
-                String sql = "SELECT * FROM " + ELEMENT_TABLE + " WHERE " + where;
+                sql = "SELECT * FROM " + ELEMENT_TABLE + " WHERE " + where;
 //                System.out.println(">>> we got " + sql);
                 ResultSet resultSet = ps.executeQuery(sql);
 //                resultSet.next();
 //                System.out.println(resultSet.getInt("id"));
                 return resultSet;
             } catch (SQLException e) {
+                System.out.println("Line that threw error: " + sql);
                 e.printStackTrace();
             }
         }

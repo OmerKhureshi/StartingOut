@@ -2,23 +2,23 @@ package com.application.fxgraph.ElementHelpers;
 
 import com.application.db.DAOImplementation.ElementDAOImpl;
 import com.application.db.DAOImplementation.ElementToChildDAOImpl;
+import com.application.fxgraph.cells.CircleCell;
+import com.application.fxgraph.graph.Edge;
+import com.application.fxgraph.graph.Graph;
+import javafx.geometry.BoundingBox;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.shape.Circle;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
+import java.util.List;
 
 public class ConvertDBtoElementTree {
-
-    // Stores the root grandParent Elements for each tree having a unique thread id.
-    // These grandParent Elements do not represent any method invocations.
     private Map<Integer, Element> threadMapToRoot = new LinkedHashMap<>();
-
-    // Used internally for linking parent and child Elements.
-    private Deque<Element> stack = new LinkedList<>();
-
-    Element grandParent = null;
-    // Used internally to save state of the Element in the previous run of this method.
-    Element parent = null;
-    Element cur = null;
+    // private Deque<Element> stack = new LinkedList<>();
     public ArrayList<Element> rootsList;
+    Element grandParent, parent, cur;
 
     public ConvertDBtoElementTree() {
         rootsList = new ArrayList<>();
@@ -126,5 +126,59 @@ public class ConvertDBtoElementTree {
             root.getChildren().stream().forEachOrdered(this::recursivelyInsertElementsIntoDB);
         }
     }
+
+    public List<Map> getCirclesToLoadIntoViewPort(ScrollPane scrollPane) {
+        // get current view port.
+        BoundingBox boundingBox = Graph.getViewPortDims(scrollPane);
+        // get all elements in the that area.
+        double viewPortMinX = boundingBox.getMinX();
+        double viewPortMaxX = boundingBox.getMaxX();
+        double viewPortMinY = boundingBox.getMinY();
+        double viewPortMaxY = boundingBox.getMaxY();
+        String whereClause = "bound_box_x_coordinate > " + viewPortMinX +
+                " AND bound_box_x_coordinate < " + viewPortMaxX +
+                " AND bound_box_y_coordinate > " + viewPortMinY +
+                " AND bound_box_y_coordinate < " + viewPortMaxY;
+
+        ResultSet rs = ElementDAOImpl.selectWhere(whereClause);
+        // return a list of circle cells back to the calling method.
+        Map<String, CircleCell> mapCircleCell = new HashMap<>();
+        Map<String, Edge> mapEdge = new HashMap<>();
+        try {
+            while (rs.next()) {
+                String id = String.valueOf(rs.getInt("id"));
+                float xCoordinate = rs.getFloat("bound_box_x_coordinate");
+                float yCoordinate = rs.getFloat("bound_box_y_coordinate");
+                String parentId = String.valueOf(rs.getInt("parent_id"));
+                if (!mapCircleCell.containsKey(id)) {
+                    CircleCell curCircleCell = new CircleCell(id, xCoordinate, yCoordinate);
+                    mapCircleCell.put(id, curCircleCell);
+                    System.out.println("Dynamic fetch: " + rs.getInt("id"));
+                    // add edge.
+                    CircleCell parentCircleCell = mapCircleCell.get(parentId);
+                    if (parentCircleCell == null) {
+                        // create parent circle cell
+                        ResultSet rsTemp = ElementDAOImpl.selectWhere("id == " + parentId);
+                        if (rsTemp.next()) {
+                            float xCoordinateTemp = rsTemp.getFloat("bound_box_x_coordinate");
+                            float yCoordinateTemp = rsTemp.getFloat("bound_box_y_coordinate");
+                            parentCircleCell = new CircleCell(parentId, xCoordinateTemp, yCoordinateTemp);
+                            mapCircleCell.put(parentId, parentCircleCell);
+                        }
+                    }
+                    mapEdge.put(id, new Edge(parentCircleCell, curCircleCell));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // maintain a map of circles and edges so you can check whats already on UI.
+        List<Map> result = new ArrayList<>();
+        result.add(mapCircleCell);
+        result.add(mapEdge);
+        return result;
+        // worry about removing part next.
+    }
+
 }
 

@@ -109,7 +109,11 @@ public class Model {
 
     public void addCell( Cell cell) {
         addedCells.add(cell);
-        cellMap.put( cell.getCellId(), cell);
+        cellMap.put(cell.getCellId(), cell);
+    }
+
+    public void addEdge(Edge edge) {
+        addedEdges.add(edge);
     }
 
     public void addEdge(CircleCell sourceCell, CircleCell targetCell) {
