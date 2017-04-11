@@ -25,7 +25,7 @@ import java.util.Map;
 public class Main extends Application {
 
     // Part of code from http://stackoverflow.com/a/30696075/3690248
-    Graph graph = new Graph();
+    Graph graph;
     Model model;
     ConvertDBtoElementTree convertDBtoElementTree;
 
@@ -38,7 +38,7 @@ public class Main extends Application {
         root.setCenter(graph.getScrollPane());
         ((ZoomableScrollPane)graph.getScrollPane()).setSomething(this);
 
-        Scene scene = new Scene(root, 1024, 768);
+        Scene scene = new Scene(root, 500, 300);
         scene.getStylesheets().add(getClass().getResource("/application.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -98,6 +98,7 @@ public class Main extends Application {
                     convertDBtoElementTree.StringToElementList(brokenLineList);
                 });
         convertDBtoElementTree.calculateElementProperties();
+        Graph.drawPlaceHolderLines();
         Map<Integer, Element> threadMapToRoot = convertDBtoElementTree.getThreadMapToRoot();
         model = graph.getModel();
 
@@ -115,7 +116,8 @@ public class Main extends Application {
         // Map<Integer, CircleCell> resMap = fromDBToUI();
         // nextRound(nextRound(resMap, 2), 3);
         onScrollingScrollPane();
-        graph.endUpdate();
+        // graph.endUpdate();
+        graph.myEndUpdate();
     }
 
     private void createCircleCellsRecursively(Element root, Model model) {
@@ -192,24 +194,21 @@ public class Main extends Application {
 }
 
     public void onScrollingScrollPane() {
-        List<Map> result = convertDBtoElementTree.getCirclesToLoadIntoViewPort(graph.getScrollPane());
-        ((HashMap<String, CircleCell>)result.get(0)).entrySet().stream()
-                .map(entry -> entry.getValue())
-                .forEach(cell -> model.addCell(cell));
+        convertDBtoElementTree.getCirclesToLoadIntoViewPort(graph.getScrollPane(), model);
+        // ((HashMap<String, CircleCell>)result.get(0)).entrySet().stream()
+        //         .map(entry -> entry.getValue())
+        //         .forEach(cell -> model.addCell(cell));
+        //
+        // ((HashMap<String, Edge>)result.get(1)).entrySet().stream()
+        //         .map(entry -> entry.getValue())
+        //         .forEach(edge -> model.addEdge(edge));
 
-        ((HashMap<String, Edge>)result.get(1)).entrySet().stream()
-                .map(entry -> entry.getValue())
-                .forEach(edge -> model.addEdge(edge));
-
-        graph.endUpdate();
-
-        /*
-        * Maintain a single map of circles currently on UI. It is maintained by modelclass
-        * Maintain similar map for Edges. Key would be element id of the target circle. maintained by model class
-        * use these maps to see if circles and edges are already present on screen before drawing.
-        *
-        * logic of adding new cells and edges should be handled by graph or model.
-        * */
+        // Maintain a single map of circles currently on UI. It is maintained by model class
+        // Maintain similar map for Edges. Key would be element id of the target circle. maintained by model class
+        // use these maps to see if circles and edges are already present on screen before drawing.
+        // logic of adding new cells and edges should be handled by graph or model.
+        //
+        graph.myEndUpdate();
     }
 
     private void addGraphComponents() {

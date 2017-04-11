@@ -19,7 +19,12 @@ public class Element {
 
     private int leafCount = 0;
     private boolean isLeafCountSet = false;
+    static int maxLeafCount = 0;
+
     private int levelCount = 0;
+
+    static int maxLevelCount = 0;
+
     private BoundBox boundBox = new BoundBox();
 
     private int coordMultiplier = 1;
@@ -142,7 +147,16 @@ public class Element {
         }
         setLeafCount(count);
 
+        maxLeafCount = Math.max(maxLeafCount, count);
         return count;
+    }
+
+    public static int getMaxLevelCount() {
+        return maxLevelCount;
+    }
+
+    public static int getMaxLeafCount() {
+        return maxLeafCount;
     }
 
     /**
@@ -162,7 +176,7 @@ public class Element {
         for (Element ele : getChildren()) {
             ele.calculateLevelCount(yourLevel + 1);
         }
-
+        maxLevelCount = Math.max(maxLevelCount, yourLevel);
         return yourLevel;
     }
 

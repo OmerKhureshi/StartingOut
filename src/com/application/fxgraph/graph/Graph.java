@@ -1,5 +1,6 @@
 package com.application.fxgraph.graph;
 
+import com.application.fxgraph.ElementHelpers.Element;
 import javafx.geometry.BoundingBox;
 import javafx.scene.Group;
 import javafx.scene.control.ScrollPane;
@@ -21,27 +22,30 @@ public class Graph {
      * the top-most and left-most child to the top and left eg when you drag the
      * top child down, the entire scrollpane would move down
      */
-    CellLayer cellLayer;
+    static CellLayer cellLayer;
 
     public Graph() {
-
         this.model = new Model();
-
         canvas = new Group();
         cellLayer = new CellLayer();
-
         canvas.getChildren().add(cellLayer);
-        // canvas.getChildren().add(new Line(0, 0, 100, 0));
-        // canvas.getChildren().add(new Line(0, 0, 0, 100));
-
         mouseGestures = new MouseGestures(this);
-
         scrollPane = new ZoomableScrollPane(canvas);
 //        scrollPane = new ScrollPane(canvas);
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
     }
 
+    public static void drawPlaceHolderLines() {
+        Line hPlaceHolderLine = new Line(0, 0, (Element.getMaxLevelCount() + 1) * BoundBox.unitWidthFactor, 0);
+        hPlaceHolderLine.setStrokeWidth(2);
+        cellLayer.getChildren().add(hPlaceHolderLine);
+
+        Line vPlaceHolderLine = new Line(0, 0, 0, Element.getMaxLeafCount() * BoundBox.unitHeightFactor);
+        vPlaceHolderLine.setStrokeWidth(2);
+        cellLayer.getChildren().add(vPlaceHolderLine);
+        System.out.println("Lines have been drawn: level: " + Element.getMaxLevelCount() * BoundBox.unitWidthFactor + "; leaf: " + Element.getMaxLeafCount() * BoundBox.unitHeightFactor );
+    }
     public ScrollPane getScrollPane() {
         return this.scrollPane;
     }
@@ -58,19 +62,24 @@ public class Graph {
     }
 
     public void myEndUpdate() {
-        getCellLayer().getChildren().addAll(model.newCircleCells);
-        getCellLayer().getChildren().addAll(model.newEdges);
+        model.listCircleCellsOnUI.stream()
+                .map(item -> item.getCellId())
+                .forEach(System.out::println);
 
-        model.clearNewCircleCells();
-        model.clearNewEdges();
+        getCellLayer().getChildren().addAll(model.listCircleCellsOnUI);
+        getCellLayer().getChildren().addAll(model.listEdgesOnUI);
+
+        model.listCircleCellsOnUI.stream()
+                .forEach(circleCell -> mouseGestures.makeDraggable(circleCell));
+
+        model.clearListCircleCellsOnUI();
+        model.clearListEdgesOnUI();
     }
 
     public void endUpdate() {
-
         // add components to graph pane
         getCellLayer().getChildren().addAll(model.getAddedEdges());
         getCellLayer().getChildren().addAll(model.getAddedCells());
-
 
         // remove components from graph pane
         getCellLayer().getChildren().removeAll(model.getRemovedCells());
@@ -100,7 +109,7 @@ public class Graph {
 
     public static BoundingBox getViewPortDims(ScrollPane scrollPane) {
         // http://stackoverflow.com/questions/26240501/javafx-scrollpane-update-viewportbounds-on-scroll
-        double hValue = scrollPane.getHvalue();
+        double hValue = scrollPane.getHvalue();  // horizontal scroll bar position.
         double contentWidth = scrollPane.getContent().getLayoutBounds().getWidth();
         double viewportWidth = scrollPane.getViewportBounds().getWidth();
 
@@ -110,9 +119,8 @@ public class Graph {
 
         double minX = hValue * (contentWidth - viewportWidth);
         double minY = vValue * (contentHeight - viewportHeight);
-
-        BoundingBox boundingBox = new BoundingBox(minX, minY, minX + viewportHeight, minY + viewportHeight);
-        System.out.println("Graph:getViewPortDims: " + boundingBox.toString());
+        System.out.println("Scrollpane height: " + scrollPane.getViewportBounds().getHeight() + " : width: " + scrollPane.getViewportBounds().getWidth());
+        BoundingBox boundingBox = new BoundingBox(minX, minY, viewportWidth, viewportHeight);
         return boundingBox;
     }
 }

@@ -25,10 +25,10 @@ public class Model {
 
     Map<String, Cell> cellMap; // <id,cell>
 
-    Map<String, CircleCell> circleCellsOnUI = new HashMap<>();
-    List<CircleCell> newCircleCells = new ArrayList<>();
-    Map<String, Edge> edgesOnUI = new HashMap<>();
-    List<Edge> newEdges = new ArrayList<>();
+    Map<String, CircleCell> mapCircleCellsOnUI = new HashMap<>();
+    List<CircleCell> listCircleCellsOnUI = new ArrayList<>();
+    Map<String, Edge> mapEdgesOnUI = new HashMap<>();
+    List<Edge> listEdgesOnUI = new ArrayList<>();
 
     public Model() {
 
@@ -39,34 +39,44 @@ public class Model {
     }
 
     /*
-    * new/modified methods start
-    * */
+     * new/modified methods start
+     */
+    public List<CircleCell> newlyAddedCircleCells = new ArrayList<>();
     public void addCell(CircleCell circleCell) {
-        if (!circleCellsOnUI.containsKey(circleCell.getCellId())) {
-            circleCellsOnUI.put(circleCell.getCellId(), circleCell);
-            newCircleCells.add(circleCell);
+        if (!mapCircleCellsOnUI.containsKey(circleCell.getCellId())) {
+            mapCircleCellsOnUI.put(circleCell.getCellId(), circleCell);
+            listCircleCellsOnUI.add(circleCell);
+
         }
     }
 
     public void addEdge(Edge edge) {
         addedEdges.add(edge);
-        if (!edgesOnUI.containsKey(edge)) {
-            edgesOnUI.put(edge.getEdgeId(), edge);
-            newEdges.add(edge);
+        if (!mapEdgesOnUI.containsKey(edge)) {
+            mapEdgesOnUI.put(edge.getEdgeId(), edge);
+            listEdgesOnUI.add(edge);
         }
     }
 
-    public void clearNewCircleCells() {
-        newCircleCells.clear();
+    public void clearListCircleCellsOnUI() {
+        listCircleCellsOnUI.clear();
     }
 
-    public void clearNewEdges() {
-        newEdges.clear();
+    public void clearListEdgesOnUI() {
+        listEdgesOnUI.clear();
     }
+
+    public Map<String, CircleCell> getMapCircleCellsOnUI() {
+        return mapCircleCellsOnUI;
+    }
+
+    public Map<String, Edge> getMapEdgesOnUI() {
+        return mapEdgesOnUI;
+    }
+
     /*
     * new methods end
     * */
-
 
     public void clear() {
 
@@ -146,8 +156,6 @@ public class Model {
         addedCells.add(cell);
         cellMap.put(cell.getCellId(), cell);
     }
-
-
 
     public void addEdge(CircleCell sourceCell, CircleCell targetCell) {
         Edge edge = new Edge(sourceCell, targetCell);

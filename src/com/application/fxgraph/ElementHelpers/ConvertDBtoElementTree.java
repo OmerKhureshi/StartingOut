@@ -5,6 +5,7 @@ import com.application.db.DAOImplementation.ElementToChildDAOImpl;
 import com.application.fxgraph.cells.CircleCell;
 import com.application.fxgraph.graph.Edge;
 import com.application.fxgraph.graph.Graph;
+import com.application.fxgraph.graph.Model;
 import javafx.geometry.BoundingBox;
 import javafx.scene.control.ScrollPane;
 import java.sql.ResultSet;
@@ -125,20 +126,34 @@ public class ConvertDBtoElementTree {
         }
     }
 
-    public List<Map> getCirclesToLoadIntoViewPort(ScrollPane scrollPane) {
-        Map<String, CircleCell> mapCircleCell = new HashMap<>();
-        Map<String, Edge> mapEdge = new HashMap<>();
+    public void getCirclesToLoadIntoViewPort(ScrollPane scrollPane, Model model) {
+        Map<String, CircleCell> mapCircleCellsOnUI = model.getMapCircleCellsOnUI();
+        Map<String, Edge> mapEdgesOnUI = model.getMapEdgesOnUI();
         // get current view port.
         BoundingBox boundingBox = Graph.getViewPortDims(scrollPane);
         // get all elements in the that area.
         double viewPortMinX = boundingBox.getMinX();
         double viewPortMaxX = boundingBox.getMaxX();
+        // double viewPortMaxX = boundingBox.getWidth();
+
         double viewPortMinY = boundingBox.getMinY();
         double viewPortMaxY = boundingBox.getMaxY();
-        String whereClause = "bound_box_x_coordinate > " + viewPortMinX +
-                " AND bound_box_x_coordinate < " + viewPortMaxX +
-                " AND bound_box_y_coordinate > " + viewPortMinY +
-                " AND bound_box_y_coordinate < " + viewPortMaxY;
+        // double viewPortMaxY = boundingBox.getHeight();
+        int offset = 50;
+
+        /*
+        * determine why viewport height is increasing.
+        */
+        String whereClause = "bound_box_x_coordinate > " + (viewPortMinX) +
+                " AND bound_box_x_coordinate < " + (viewPortMaxX) +
+                " AND bound_box_y_coordinate > " + (viewPortMinY + offset) +
+                " AND bound_box_y_coordinate < " + (viewPortMaxY - offset);
+
+        System.out.println("Dimension: "
+                + " minX: " + viewPortMinX + "; maxX: " + viewPortMaxX
+                + "; minY: " + (viewPortMinY + offset) + "; maxY: " + (viewPortMaxY - offset)
+                + "; viewport height: " + boundingBox.getHeight() );
+
 
         ResultSet rs = ElementDAOImpl.selectWhere(whereClause);
         // return a list of circle cells back to the calling method.
@@ -148,36 +163,30 @@ public class ConvertDBtoElementTree {
                 float xCoordinate = rs.getFloat("bound_box_x_coordinate");
                 float yCoordinate = rs.getFloat("bound_box_y_coordinate");
                 String parentId = String.valueOf(rs.getInt("parent_id"));
-                System.out.println("Yes we know you are scrolling. Just that no more new circles to load.");
-                if (!mapCircleCell.containsKey(id)) {
+                if (!mapCircleCellsOnUI.containsKey(id)) {
                     CircleCell curCircleCell = new CircleCell(id, xCoordinate, yCoordinate);
-                    mapCircleCell.put(id, curCircleCell);
-                    System.out.println("Newly fetched circles : " + rs.getInt("id"));
+                    model.addCell(curCircleCell);
                     // add edge.
-                    CircleCell parentCircleCell = mapCircleCell.get(parentId);
-                    if (!mapCircleCell.containsKey(parentId)) {
+                    CircleCell parentCircleCell = mapCircleCellsOnUI.get(parentId);
+                    if (!mapCircleCellsOnUI.containsKey(parentId)) {
                         // create parent circle cell
                         ResultSet rsTemp = ElementDAOImpl.selectWhere("id = " + parentId);
                         if (rsTemp.next()) {
                             float xCoordinateTemp = rsTemp.getFloat("bound_box_x_coordinate");
                             float yCoordinateTemp = rsTemp.getFloat("bound_box_y_coordinate");
                             parentCircleCell = new CircleCell(parentId, xCoordinateTemp, yCoordinateTemp);
-                            mapCircleCell.put(parentId, parentCircleCell);
+                            model.addCell(parentCircleCell);
                         }
                     }
                     if (parentCircleCell != null && curCircleCell != null) {
-                        mapEdge.put(id, new Edge(parentCircleCell, curCircleCell));
+                        Edge curEdge = new Edge(parentCircleCell, curCircleCell);
+                        model.addEdge(curEdge);
                     }
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        // maintain a map of circles and edges so you can check whats already on UI.
-        List<Map> result = new ArrayList<>();
-        result.add(mapCircleCell);
-        result.add(mapEdge);
-        return result;
         // worry about removing part next.
     }
 
