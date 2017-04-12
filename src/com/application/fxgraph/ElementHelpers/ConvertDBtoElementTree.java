@@ -139,7 +139,7 @@ public class ConvertDBtoElementTree {
         double viewPortMinY = boundingBox.getMinY();
         double viewPortMaxY = boundingBox.getMaxY();
         // double viewPortMaxY = boundingBox.getHeight();
-        int offset = 50;
+        int offset = 40;
 
         /*
         * determine why viewport height is increasing.
@@ -157,6 +157,7 @@ public class ConvertDBtoElementTree {
         ResultSet rs = ElementDAOImpl.selectWhere(whereClause);
         CircleCell curCircleCell = null;
         CircleCell parentCircleCell = null;
+
         // return a list of circle cells back to the calling method.
         try {
             while (rs.next()) {
@@ -165,6 +166,16 @@ public class ConvertDBtoElementTree {
                 float yCoordinate = rs.getFloat("bound_box_y_coordinate");
                 String parentId = String.valueOf(rs.getInt("parent_id"));
                 System.out.println("Looking at cell: " + id);
+                System.out.println("mapCircleCellsOnUI: ");
+                mapCircleCellsOnUI.entrySet().stream()
+                        .map(stringCircleCellEntry -> stringCircleCellEntry.getKey())
+                        .forEach(s -> System.out.print(s + " ; "));
+                System.out.println("");
+                System.out.println("mapEdgesOnUI: ");
+                mapEdgesOnUI.entrySet().stream()
+                        .map(stringCircleCellEntry -> stringCircleCellEntry.getKey())
+                        .forEach(s -> System.out.print(s + " ; "));
+                System.out.println("");
                 //  Do a periodic check and remove all ui elements that are not in the current viewport.
                 // Perform the above check on mapCircleCellsOnUI
                 if (!mapCircleCellsOnUI.containsKey(id)) {
@@ -184,7 +195,11 @@ public class ConvertDBtoElementTree {
                             model.addCell(parentCircleCell);
                         }
                     }
+                }  else {
+                    curCircleCell = mapCircleCellsOnUI.get(id);
+                    parentCircleCell = mapCircleCellsOnUI.get(parentId);
                 }
+
                 if (curCircleCell != null && !model.getMapEdgesOnUI().containsKey(curCircleCell.getCellId()) && parentCircleCell != null) {
                     Edge curEdge = new Edge(parentCircleCell, curCircleCell);
                     System.out.println("New Edge: " + curEdge.getEdgeId());
