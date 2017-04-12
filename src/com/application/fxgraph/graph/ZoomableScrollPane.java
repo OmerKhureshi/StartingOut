@@ -29,9 +29,13 @@ public class ZoomableScrollPane extends ScrollPane {
         scaleTransform = new Scale(scaleValue, scaleValue, 0, 0);
         zoomGroup.getTransforms().add(scaleTransform);
         zoomGroup.setOnScroll(new ZoomHandler());
+
+        hvalueProperty().addListener((observable, oldValue, newValue) -> main.onScrollingScrollPane());
+        vvalueProperty().addListener((observable, oldValue, newValue) -> main.onScrollingScrollPane());
+        // viewportBoundsProperty().addListener((observable, oldValue, newValue) -> main.onScrollingScrollPane());
     }
 
-    public void setSomething(Main m) {
+    public void saveRef(Main m) {
         main = m;
     }
 
@@ -113,23 +117,29 @@ public class ZoomableScrollPane extends ScrollPane {
     }
 
     private class ZoomHandler implements EventHandler<ScrollEvent> {
+
+        /*
+         *  Add change listener to hValue and vValue.
+         */
         @Override
         public void handle(ScrollEvent scrollEvent) {
-            main.onScrollingScrollPane();
             if (scrollEvent.isControlDown())
             {
                 if (scrollEvent.getDeltaY() < 0) {
                     scaleValue -= delta;
-                    if (scaleValue < .05)
+                    if (scaleValue < .05) {
                         scaleValue = .05;
+                    }
                     scaleValue = Math.max(scaleValue, 0.05);
                 } else {
                     scaleValue += delta;
                 }
 
                 zoomTo(scaleValue);
-
                 scrollEvent.consume();
+                } else {
+
+                // scrollEvent.consume();
             }
         }
     }

@@ -149,13 +149,14 @@ public class ConvertDBtoElementTree {
                 " AND bound_box_y_coordinate > " + (viewPortMinY + offset) +
                 " AND bound_box_y_coordinate < " + (viewPortMaxY - offset);
 
-        System.out.println("Dimension: "
-                + " minX: " + viewPortMinX + "; maxX: " + viewPortMaxX
-                + "; minY: " + (viewPortMinY + offset) + "; maxY: " + (viewPortMaxY - offset)
-                + "; viewport height: " + boundingBox.getHeight() );
-
+        // System.out.println("Dimension: "
+        //         + " minX: " + viewPortMinX + "; maxX: " + viewPortMaxX
+        //         + "; minY: " + (viewPortMinY + offset) + "; maxY: " + (viewPortMaxY - offset)
+        //         + "; viewport height: " + boundingBox.getHeight() );
 
         ResultSet rs = ElementDAOImpl.selectWhere(whereClause);
+        CircleCell curCircleCell = null;
+        CircleCell parentCircleCell = null;
         // return a list of circle cells back to the calling method.
         try {
             while (rs.next()) {
@@ -163,14 +164,19 @@ public class ConvertDBtoElementTree {
                 float xCoordinate = rs.getFloat("bound_box_x_coordinate");
                 float yCoordinate = rs.getFloat("bound_box_y_coordinate");
                 String parentId = String.valueOf(rs.getInt("parent_id"));
+                System.out.println("Looking at cell: " + id);
+                //  Do a periodic check and remove all ui elements that are not in the current viewport.
+                // Perform the above check on mapCircleCellsOnUI
                 if (!mapCircleCellsOnUI.containsKey(id)) {
-                    CircleCell curCircleCell = new CircleCell(id, xCoordinate, yCoordinate);
+                    System.out.println("    new cell");
+                    curCircleCell = new CircleCell(id, xCoordinate, yCoordinate);
                     model.addCell(curCircleCell);
                     // add edge.
-                    CircleCell parentCircleCell = mapCircleCellsOnUI.get(parentId);
+                    parentCircleCell = mapCircleCellsOnUI.get(parentId);
                     if (!mapCircleCellsOnUI.containsKey(parentId)) {
                         // create parent circle cell
                         ResultSet rsTemp = ElementDAOImpl.selectWhere("id = " + parentId);
+                        System.out.println("    new parent cell: " + parentId);
                         if (rsTemp.next()) {
                             float xCoordinateTemp = rsTemp.getFloat("bound_box_x_coordinate");
                             float yCoordinateTemp = rsTemp.getFloat("bound_box_y_coordinate");
@@ -178,10 +184,11 @@ public class ConvertDBtoElementTree {
                             model.addCell(parentCircleCell);
                         }
                     }
-                    if (parentCircleCell != null && curCircleCell != null) {
-                        Edge curEdge = new Edge(parentCircleCell, curCircleCell);
-                        model.addEdge(curEdge);
-                    }
+                }
+                if (curCircleCell != null && !model.getMapEdgesOnUI().containsKey(curCircleCell.getCellId()) && parentCircleCell != null) {
+                    Edge curEdge = new Edge(parentCircleCell, curCircleCell);
+                    System.out.println("New Edge: " + curEdge.getEdgeId());
+                    model.addEdge(curEdge);
                 }
             }
         } catch (SQLException e) {

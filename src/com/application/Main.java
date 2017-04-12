@@ -11,24 +11,25 @@ import com.application.logs.fileHandler.CallTraceLogFile;
 import com.application.logs.fileIntegrity.CheckFileIntegrity;
 import com.application.logs.parsers.ParseCallTrace;
 import javafx.application.Application;
+import javafx.geometry.BoundingBox;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Main extends Application {
-
     // Part of code from http://stackoverflow.com/a/30696075/3690248
     Graph graph;
     Model model;
     ConvertDBtoElementTree convertDBtoElementTree;
-
+/*
+* Remove circles and edges on scroll out.
+* Store or enable information access on click of circle.
+* */
     @Override
     public void start(Stage primaryStage) {
         BorderPane root = new BorderPane();
@@ -36,7 +37,7 @@ public class Main extends Application {
         graph = new Graph();
 
         root.setCenter(graph.getScrollPane());
-        ((ZoomableScrollPane)graph.getScrollPane()).setSomething(this);
+        ((ZoomableScrollPane)graph.getScrollPane()).saveRef(this);
 
         Scene scene = new Scene(root, 500, 300);
         scene.getStylesheets().add(getClass().getResource("/application.css").toExternalForm());
@@ -45,8 +46,8 @@ public class Main extends Application {
 
         //        addGraphComponents();
         addGraphCellComponents();
-        //        Layout layout = new RandomLayout(graph);
-        //        layout.execute();
+        // Layout layout = new RandomLayout(graph);
+        // layout.execute();
 
         System.out.println("Max memory: " + Runtime.getRuntime().maxMemory() / 1000000);
         System.out.println("Free memory: " + Runtime.getRuntime().freeMemory() / 1000000);
@@ -54,7 +55,6 @@ public class Main extends Application {
     }
 
     private void addGraphCellComponents() {
-        System.out.println("Starting out");
         // Check log file integrity.
         CheckFileIntegrity.checkFile(CallTraceLogFile.getFile());
 
@@ -89,13 +89,13 @@ public class Main extends Application {
 
         convertDBtoElementTree = new ConvertDBtoElementTree();
         new ParseCallTrace().readFile(CallTraceLogFile.getFile(),
-                brokenLineList -> {
+                parsedLineList -> {
                     try {
-                        DatabaseUtil.insertCTStmt(brokenLineList);
+                        DatabaseUtil.insertCTStmt(parsedLineList);
                     } catch (SQLException | ClassNotFoundException | IllegalAccessException | InstantiationException e) {  // Todo Create a custom exception class and clean this.
                         e.printStackTrace();
                     }
-                    convertDBtoElementTree.StringToElementList(brokenLineList);
+                    convertDBtoElementTree.StringToElementList(parsedLineList);
                 });
         convertDBtoElementTree.calculateElementProperties();
         Graph.drawPlaceHolderLines();
@@ -195,19 +195,6 @@ public class Main extends Application {
 
     public void onScrollingScrollPane() {
         convertDBtoElementTree.getCirclesToLoadIntoViewPort(graph.getScrollPane(), model);
-        // ((HashMap<String, CircleCell>)result.get(0)).entrySet().stream()
-        //         .map(entry -> entry.getValue())
-        //         .forEach(cell -> model.addCell(cell));
-        //
-        // ((HashMap<String, Edge>)result.get(1)).entrySet().stream()
-        //         .map(entry -> entry.getValue())
-        //         .forEach(edge -> model.addEdge(edge));
-
-        // Maintain a single map of circles currently on UI. It is maintained by model class
-        // Maintain similar map for Edges. Key would be element id of the target circle. maintained by model class
-        // use these maps to see if circles and edges are already present on screen before drawing.
-        // logic of adding new cells and edges should be handled by graph or model.
-        //
         graph.myEndUpdate();
     }
 
@@ -249,6 +236,21 @@ public class Main extends Application {
         model.addEdge("Cell G", "Cell K");
 
         graph.endUpdate();
+    }
+
+    public void removeUIElements() {
+        // Get the current viewport dimensions.
+        BoundingBox viewPort = Graph.getViewPortDims(graph.getScrollPane());
+
+        // Iterate through all the elements in mapCircleCellsOnUI and nullify those circles that are not in viewport.
+        model.getMapCircleCellsOnUI().entrySet().stream()
+                .map(entrySet -> entrySet.getValue())
+                .forEachOrdered(
+                        circleCell -> {
+                            circleCell.localToScene(circleCell.getBoundsInLocal());
+                        }
+                );
+
     }
 
     public static void main(String[] args) {
