@@ -12,7 +12,9 @@ import com.application.logs.fileIntegrity.CheckFileIntegrity;
 import com.application.logs.parsers.ParseCallTrace;
 import javafx.application.Application;
 import javafx.geometry.BoundingBox;
+import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
@@ -26,6 +28,12 @@ public class Main extends Application {
     Graph graph;
     Model model;
     ConvertDBtoElementTree convertDBtoElementTree;
+
+    public static Object getLock() {
+        return lock;
+    }
+
+    static Object lock = new Object();
 /*
 * Remove circles and edges on scroll out.
 * Store or enable information access on click of circle.
@@ -44,14 +52,16 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        //        addGraphComponents();
         addGraphCellComponents();
+
+        // Original.
+        // addGraphComponents();
         // Layout layout = new RandomLayout(graph);
         // layout.execute();
 
-        System.out.println("Max memory: " + Runtime.getRuntime().maxMemory() / 1000000);
-        System.out.println("Free memory: " + Runtime.getRuntime().freeMemory() / 1000000);
-        System.out.println("Total memory: " + Runtime.getRuntime().totalMemory() / 1000000);
+        // System.out.println("Max memory: " + Runtime.getRuntime().maxMemory() / 1000000);
+        // System.out.println("Free memory: " + Runtime.getRuntime().freeMemory() / 1000000);
+        // System.out.println("Total memory: " + Runtime.getRuntime().totalMemory() / 1000000);
     }
 
     private void addGraphCellComponents() {
@@ -102,22 +112,11 @@ public class Main extends Application {
         Map<Integer, Element> threadMapToRoot = convertDBtoElementTree.getThreadMapToRoot();
         model = graph.getModel();
 
-        // Iterate through tree and insert each element into  ELEMENT table.
-        // Also insert each parent child relation into ELEMENT_TO_CHILD table.
         threadMapToRoot.entrySet().stream()
                 .map(Map.Entry::getValue)
                 .forEachOrdered(convertDBtoElementTree::recursivelyInsertElementsIntoDB);
 
-        // Iterate through the tree and create circle cells for each element found.
-//        threadMapToRoot.entrySet().stream()
-//                .map(Map.Entry::getValue)
-//                .forEachOrdered(root -> createCircleCellsRecursively(root, model));
-
-        // Map<Integer, CircleCell> resMap = fromDBToUI();
-        // nextRound(nextRound(resMap, 2), 3);
         onScrollingScrollPane();
-        // graph.endUpdate();
-        graph.myEndUpdate();
     }
 
     private void createCircleCellsRecursively(Element root, Model model) {
@@ -194,7 +193,7 @@ public class Main extends Application {
 }
 
     public void onScrollingScrollPane() {
-        convertDBtoElementTree.getCirclesToLoadIntoViewPort(graph.getScrollPane(), model);
+        convertDBtoElementTree.getCirclesToLoadIntoViewPort(graph);
         graph.myEndUpdate();
     }
 
@@ -236,21 +235,6 @@ public class Main extends Application {
         model.addEdge("Cell G", "Cell K");
 
         graph.endUpdate();
-    }
-
-    public void removeUIElements() {
-        // Get the current viewport dimensions.
-        BoundingBox viewPort = Graph.getViewPortDims(graph.getScrollPane());
-
-        // Iterate through all the elements in mapCircleCellsOnUI and nullify those circles that are not in viewport.
-        model.getMapCircleCellsOnUI().entrySet().stream()
-                .map(entrySet -> entrySet.getValue())
-                .forEachOrdered(
-                        circleCell -> {
-                            circleCell.localToScene(circleCell.getBoundsInLocal());
-                        }
-                );
-
     }
 
     public static void main(String[] args) {

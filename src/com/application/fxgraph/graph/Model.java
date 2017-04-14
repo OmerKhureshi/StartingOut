@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.application.Main;
 import com.application.fxgraph.ElementHelpers.Element;
 import com.application.fxgraph.cells.CircleCell;
 import com.application.fxgraph.cells.TriangleCell;
@@ -26,14 +27,16 @@ public class Model {
     Map<String, Cell> cellMap; // <id,cell>
 
     Map<String, CircleCell> mapCircleCellsOnUI = new HashMap<>();
+
     List<CircleCell> listCircleCellsOnUI = new ArrayList<>();
+
     Map<String, Edge> mapEdgesOnUI = new HashMap<>();
+
+
+
     List<Edge> listEdgesOnUI = new ArrayList<>();
-
     public Model() {
-
         graphParent = new Cell("_ROOT_");
-
         // clear model, create lists
         clear();
     }
@@ -41,12 +44,12 @@ public class Model {
     /*
      * new/modified methods start
      */
-    public List<CircleCell> newlyAddedCircleCells = new ArrayList<>();
     public void addCell(CircleCell circleCell) {
-        if (!mapCircleCellsOnUI.containsKey(circleCell.getCellId())) {
-            mapCircleCellsOnUI.put(circleCell.getCellId(), circleCell);
-            listCircleCellsOnUI.add(circleCell);
-
+        synchronized (Main.getLock()) {
+            if (!mapCircleCellsOnUI.containsKey(circleCell.getCellId())) {
+                mapCircleCellsOnUI.put(circleCell.getCellId(), circleCell);
+                listCircleCellsOnUI.add(circleCell);
+            }
         }
     }
 
@@ -64,6 +67,13 @@ public class Model {
 
     public void clearListEdgesOnUI() {
         listEdgesOnUI.clear();
+    }
+
+    public List<CircleCell> getListCircleCellsOnUI() {
+        return listCircleCellsOnUI;
+    }
+    public List<Edge> getListEdgesOnUI() {
+        return listEdgesOnUI;
     }
 
     public Map<String, CircleCell> getMapCircleCellsOnUI() {
@@ -216,4 +226,5 @@ public class Model {
         removedEdges.clear();
 
     }
+
 }

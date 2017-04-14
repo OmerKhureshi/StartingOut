@@ -21,6 +21,7 @@ public class Edge extends Group {
         target.addCellParent(source);
 
         line = new Line();
+
         line.setStartX(source.getLayoutX());
         line.setStartY(source.getLayoutY());
         line.setEndX(target.getLayoutX());

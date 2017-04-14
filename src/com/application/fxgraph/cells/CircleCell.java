@@ -11,11 +11,10 @@ public class CircleCell extends Cell {
 
     public CircleCell(String id) {
         super( id);
-
         double width = 10;
         double height = 10;
 
-//        Polygon view = new Polygon( width / 2, 0, width, height, 0, height);
+       // Polygon view = new Polygon( width / 2, 0, width, height, 0, height);
         Group group = new Group();
         Circle view = new Circle(20);
         Label label = new Label(id);
@@ -23,7 +22,6 @@ public class CircleCell extends Cell {
 
         view.setStroke(Color.RED);
         view.setFill(Color.RED);
-
         setView( group);
     }
 

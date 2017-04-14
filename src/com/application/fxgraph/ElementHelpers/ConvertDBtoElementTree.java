@@ -1,13 +1,20 @@
 package com.application.fxgraph.ElementHelpers;
 
+import com.application.Main;
 import com.application.db.DAOImplementation.ElementDAOImpl;
 import com.application.db.DAOImplementation.ElementToChildDAOImpl;
 import com.application.fxgraph.cells.CircleCell;
+import com.application.fxgraph.graph.CellLayer;
 import com.application.fxgraph.graph.Edge;
 import com.application.fxgraph.graph.Graph;
 import com.application.fxgraph.graph.Model;
 import javafx.geometry.BoundingBox;
+import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.shape.Line;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -126,34 +133,23 @@ public class ConvertDBtoElementTree {
         }
     }
 
-    public void getCirclesToLoadIntoViewPort(ScrollPane scrollPane, Model model) {
+    public void getCirclesToLoadIntoViewPort(Graph graph) {
+        ScrollPane scrollPane = graph.getScrollPane();
+        Model model = graph.getModel();
+
         Map<String, CircleCell> mapCircleCellsOnUI = model.getMapCircleCellsOnUI();
         Map<String, Edge> mapEdgesOnUI = model.getMapEdgesOnUI();
         // get current view port.
         BoundingBox boundingBox = Graph.getViewPortDims(scrollPane);
-        // get all elements in the that area.
         double viewPortMinX = boundingBox.getMinX();
         double viewPortMaxX = boundingBox.getMaxX();
-        // double viewPortMaxX = boundingBox.getWidth();
-
         double viewPortMinY = boundingBox.getMinY();
         double viewPortMaxY = boundingBox.getMaxY();
-        // double viewPortMaxY = boundingBox.getHeight();
         int offset = 40;
-
-        /*
-        * determine why viewport height is increasing.
-        */
         String whereClause = "bound_box_x_coordinate > " + (viewPortMinX) +
                 " AND bound_box_x_coordinate < " + (viewPortMaxX) +
                 " AND bound_box_y_coordinate > " + (viewPortMinY + offset) +
                 " AND bound_box_y_coordinate < " + (viewPortMaxY - offset);
-
-        // System.out.println("Dimension: "
-        //         + " minX: " + viewPortMinX + "; maxX: " + viewPortMaxX
-        //         + "; minY: " + (viewPortMinY + offset) + "; maxY: " + (viewPortMaxY - offset)
-        //         + "; viewport height: " + boundingBox.getHeight() );
-
         ResultSet rs = ElementDAOImpl.selectWhere(whereClause);
         CircleCell curCircleCell = null;
         CircleCell parentCircleCell = null;
@@ -165,34 +161,33 @@ public class ConvertDBtoElementTree {
                 float xCoordinate = rs.getFloat("bound_box_x_coordinate");
                 float yCoordinate = rs.getFloat("bound_box_y_coordinate");
                 String parentId = String.valueOf(rs.getInt("parent_id"));
-                System.out.println("Looking at cell: " + id);
-                System.out.println("mapCircleCellsOnUI: ");
-                mapCircleCellsOnUI.entrySet().stream()
-                        .map(stringCircleCellEntry -> stringCircleCellEntry.getKey())
-                        .forEach(s -> System.out.print(s + " ; "));
-                System.out.println("");
-                System.out.println("mapEdgesOnUI: ");
-                mapEdgesOnUI.entrySet().stream()
-                        .map(stringCircleCellEntry -> stringCircleCellEntry.getKey())
-                        .forEach(s -> System.out.print(s + " ; "));
-                System.out.println("");
+                // System.out.println("Looking at cell: " + id);
+                // System.out.println("mapCircleCellsOnUI: ");
+                // mapCircleCellsOnUI.entrySet().stream()
+                //         .map(stringCircleCellEntry -> stringCircleCellEntry.getValue())
+                //         .forEach(s -> System.out.println( s.getCellId() + " : layoutX: " + s.getLayoutX() + " : layoutY: " + s.getLayoutY()));
+                // System.out.println("");
+
+                // System.out.println("mapEdgesOnUI: ");
+                // mapEdgesOnUI.entrySet().stream()
+                //         .map(stringCircleCellEntry -> stringCircleCellEntry.getKey())
+                //         .forEach(s -> System.out.print(s + " ; "));
+                // System.out.println("");
                 //  Do a periodic check and remove all ui elements that are not in the current viewport.
                 // Perform the above check on mapCircleCellsOnUI
                 if (!mapCircleCellsOnUI.containsKey(id)) {
-                    System.out.println("    new cell");
+                    // System.out.println("    new cell " + id);
                     curCircleCell = new CircleCell(id, xCoordinate, yCoordinate);
                     model.addCell(curCircleCell);
-                    // add edge.
                     parentCircleCell = mapCircleCellsOnUI.get(parentId);
                     if (!mapCircleCellsOnUI.containsKey(parentId)) {
-                        // create parent circle cell
                         ResultSet rsTemp = ElementDAOImpl.selectWhere("id = " + parentId);
-                        System.out.println("    new parent cell: " + parentId);
                         if (rsTemp.next()) {
                             float xCoordinateTemp = rsTemp.getFloat("bound_box_x_coordinate");
                             float yCoordinateTemp = rsTemp.getFloat("bound_box_y_coordinate");
                             parentCircleCell = new CircleCell(parentId, xCoordinateTemp, yCoordinateTemp);
                             model.addCell(parentCircleCell);
+                            // System.out.println("    new parent cell: " + parentCircleCell.getCellId());
                         }
                     }
                 }  else {
@@ -202,15 +197,71 @@ public class ConvertDBtoElementTree {
 
                 if (curCircleCell != null && !model.getMapEdgesOnUI().containsKey(curCircleCell.getCellId()) && parentCircleCell != null) {
                     Edge curEdge = new Edge(parentCircleCell, curCircleCell);
-                    System.out.println("New Edge: " + curEdge.getEdgeId());
                     model.addEdge(curEdge);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        // worry about removing part next.
+       removeFromUI(graph);
     }
 
+    Object lock = Main.getLock();
+    public void removeFromUI(Graph graph) {
+        CellLayer cellLayer = (CellLayer) graph.getCellLayer();
+        Model model = graph.getModel();
+        ScrollPane scrollPane = graph.getScrollPane();
+
+        Map<String, CircleCell> mapCircleCellsOnUI = model.getMapCircleCellsOnUI();
+        List<String> removeCircleCells = new ArrayList<>();
+        List<String> removeEdges = new ArrayList<>();
+        List<CircleCell> listCircleCellsOnUI = model.getListCircleCellsOnUI();
+        Map<String, Edge> mapEdgesOnUI = model.getMapEdgesOnUI();
+        List<Edge> listEdgesOnUI = model.getListEdgesOnUI();
+
+        BoundingBox curViewPort = Graph.getViewPortDims(scrollPane);
+        double minX = curViewPort.getMinX();
+        double minY = curViewPort.getMinY();
+
+        int offset = 20;
+        BoundingBox shrinkedBB = new BoundingBox(minX + offset, minY + offset, curViewPort.getWidth() - (2 * offset), curViewPort.getHeight() - (2 * offset));
+
+        synchronized (lock) {
+            Iterator i = mapCircleCellsOnUI.entrySet().iterator();
+            while (i.hasNext()) {
+                Map.Entry<String, CircleCell> entry = (Map.Entry) i.next();
+                CircleCell cell = entry.getValue();
+                if (!shrinkedBB.contains(cell.getLayoutX(), cell.getLayoutY())) {
+                    removeCircleCells.add(cell.getCellId());
+                }
+            }
+
+            removeCircleCells.stream()
+                    .forEach(cellId -> {
+                        CircleCell circleCell = mapCircleCellsOnUI.get(cellId);
+                        cellLayer.getChildren().remove(circleCell);
+                        mapCircleCellsOnUI.remove(cellId);
+                        listCircleCellsOnUI.remove(circleCell);
+                    });
+
+            Iterator j = mapEdgesOnUI.entrySet().iterator();
+            while (j.hasNext()) {
+                Map.Entry<String, Edge> entry = (Map.Entry) j.next();
+                Edge edge = entry.getValue();
+                Line line = (Line) edge.getChildren().get(0);
+                if (!shrinkedBB.contains(line.getEndX(), line.getEndY())) {
+                    removeEdges.add(edge.getEdgeId());
+                }
+            }
+
+            removeEdges.stream()
+                    .forEach(edgeId -> {
+                        Edge edge = mapEdgesOnUI.get(edgeId);
+                        cellLayer.getChildren().remove(edge);
+                        mapEdgesOnUI.remove(edgeId);
+                        listEdgesOnUI.remove(edge);
+                    });
+        }
+    }
 }
 

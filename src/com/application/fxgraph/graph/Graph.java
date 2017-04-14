@@ -10,9 +10,7 @@ import javafx.scene.shape.Line;
 public class Graph {
 
     private Model model;
-
     private Group canvas;
-
     private ZoomableScrollPane scrollPane;
 //    private ScrollPane scrollPane;
     MouseGestures mouseGestures;
@@ -31,21 +29,22 @@ public class Graph {
         canvas.getChildren().add(cellLayer);
         mouseGestures = new MouseGestures(this);
         scrollPane = new ZoomableScrollPane(canvas);
-//        scrollPane = new ScrollPane(canvas);
+        // scrollPane = new ScrollPane(canvas);
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
     }
 
     public static void drawPlaceHolderLines() {
-        Line hPlaceHolderLine = new Line(0, 0, (Element.getMaxLevelCount() + 1) * BoundBox.unitWidthFactor, 0);
+        Line hPlaceHolderLine = new Line(0, 0, (Element.getMaxLevelCount() + 2) * BoundBox.unitWidthFactor, 0);
         // hPlaceHolderLine.setStrokeWidth(2);
         cellLayer.getChildren().add(hPlaceHolderLine);
 
         Line vPlaceHolderLine = new Line(0, 0, 0, Element.getMaxLeafCount() * BoundBox.unitHeightFactor);
         // vPlaceHolderLine.setStrokeWidth(2);
         cellLayer.getChildren().add(vPlaceHolderLine);
-        System.out.println("Lines have been drawn: level: " + Element.getMaxLevelCount() * BoundBox.unitWidthFactor + "; leaf: " + Element.getMaxLeafCount() * BoundBox.unitHeightFactor );
+        // System.out.println("Lines have been drawn: level: " + Element.getMaxLevelCount() * BoundBox.unitWidthFactor + "; leaf: " + Element.getMaxLeafCount() * BoundBox.unitHeightFactor );
     }
+
     public ScrollPane getScrollPane() {
         return this.scrollPane;
     }
@@ -62,10 +61,6 @@ public class Graph {
     }
 
     public void myEndUpdate() {
-        model.listCircleCellsOnUI.stream()
-                .map(item -> item.getCellId())
-                .forEach(System.out::println);
-
         getCellLayer().getChildren().addAll(model.listCircleCellsOnUI);
         getCellLayer().getChildren().addAll(model.listEdgesOnUI);
 
@@ -119,7 +114,7 @@ public class Graph {
 
         double minX = hValue * (contentWidth - viewportWidth);
         double minY = vValue * (contentHeight - viewportHeight);
-        System.out.println("Scrollpane height: " + scrollPane.getViewportBounds().getHeight() + " : width: " + scrollPane.getViewportBounds().getWidth());
+        // System.out.println("Scrollpane height: " + scrollPane.getViewportBounds().getHeight() + " : width: " + scrollPane.getViewportBounds().getWidth());
         BoundingBox boundingBox = new BoundingBox(minX, minY, viewportWidth, viewportHeight);
         return boundingBox;
     }
