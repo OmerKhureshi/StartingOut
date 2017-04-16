@@ -29,22 +29,25 @@ public class ConvertDBtoElementTree {
         rootsList = new ArrayList<>();
     }
 
+    public static Element greatGrandParent = new Element(null, -2);
     public void StringToElementList(List<String> line, int fkCallTrace) {
-        // parent = stack.peek();
+        System.out.println("looking at line: " + line.toString());
         String msg = line.get(3);  // ToDo replace hardcoded indices with universal indices.
+        Integer threadId = Integer.valueOf(line.get(1));
+
         switch (msg.toUpperCase()) {
             case "ENTER":   // Todo Performance: Use int codes instead of String like "ENTER":
-                parent = cur;
+                if (!threadMapToRoot.containsKey(threadId)) {
+                    // new thread
+                    parent = null;
+                } else {
+                    parent = cur;
+                }
                 cur = new Element(parent, fkCallTrace);
-                // stack.push(cur);
-                /*if (parent != null) {
-                    ElementToChildDAOImpl.insert(parent.getElementId(), cur.getElementId());
-                }*/
                 break;
 
             case "EXIT":
                 cur = cur.getParent();
-                // stack.pop();
                 break;
 
             default:
@@ -52,14 +55,13 @@ public class ConvertDBtoElementTree {
                 throw up;  // Yuck! Not having any of that :(
         }
 
-        Integer threadId = Integer.valueOf(line.get(1));
-
         if (parent == null && !msg.equalsIgnoreCase("EXIT")) {
             if (!threadMapToRoot.containsKey(threadId)) {
-                grandParent = new Element(null, -1);
+                grandParent = new Element(greatGrandParent, -1);
                 grandParent.setChildren(new ArrayList<>(Arrays.asList(cur)));
                 cur.setParent(grandParent);
                 threadMapToRoot.put(threadId, grandParent);
+                System.out.println(">>> new grandParent: thredID: " + threadId + " : id" + grandParent.getElementId()+ " : size: " + threadMapToRoot.size());
                 /*defaultInitialize(grandParent);
                 ElementDAOImpl.insert(grandParent);*/
             } else {
@@ -67,8 +69,6 @@ public class ConvertDBtoElementTree {
                 grandparent.setChildren(new ArrayList<>(Collections.singletonList(cur)));       // set the current element as the child of the grandParent element.
                 cur.setParent(grandparent);
             }
-            // There seems to be a problem here. Because
-            /*ElementToChildDAOImpl.insert(grandParent.getElementId(), cur.getElementId());*/
         }
 
         /*if ( msg.equalsIgnoreCase("ENTER")) {
@@ -102,29 +102,29 @@ public class ConvertDBtoElementTree {
         /*
         Iterate through the threadMapToRoot and calculate Element properties for all the roots.
          */
-        threadMapToRoot.entrySet().stream()
-                .map(Map.Entry::getValue)
-                .forEachOrdered(root -> {
-                    root.calculateLeafCount();
-                    root.calculateLevelCount(0);
-                    root.setBoundBoxOnAll(root);
-                });
+        // threadMapToRoot.entrySet().stream()
+        //         .map(Map.Entry::getValue)
+        //         .forEachOrdered(root -> {
+        //             root.calculateLeafCount();
+        //             root.calculateLevelCount(0);
+        //             root.setBoundBoxOnAll(root);
+        //         });
+        //
+        greatGrandParent.calculateLeafCount();
+        greatGrandParent.calculateLevelCount(0);
+        greatGrandParent.setBoundBoxOnAll(greatGrandParent);
+
     }
 
     public void recursivelyInsertElementsIntoDB(Element root) {
         if (root == null)
             return;
-        // Insert this element into the ELEMENT table.
         ElementDAOImpl.insert(root);
-
-        // Insert this element and its parent relation into ELEMENT_TO_CHILD table.
         ElementToChildDAOImpl.insert(
                 root.getParent() == null? -1 : root.getParent().getElementId(),
                 root.getElementId());
-
-        if (root.getChildren() != null) {
+        if (root.getChildren() != null)
             root.getChildren().stream().forEachOrdered(this::recursivelyInsertElementsIntoDB);
-        }
     }
 
     public void getCirclesToLoadIntoViewPort(Graph graph) {

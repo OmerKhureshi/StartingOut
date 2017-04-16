@@ -101,13 +101,13 @@ public class Main extends Application {
                 });
         convertDBtoElementTree.calculateElementProperties();
         Graph.drawPlaceHolderLines();
-        Map<Integer, Element> threadMapToRoot = convertDBtoElementTree.getThreadMapToRoot();
+        // Map<Integer, Element> threadMapToRoot = convertDBtoElementTree.getThreadMapToRoot();
         model = graph.getModel();
 
-        threadMapToRoot.entrySet().stream()
-                .map(Map.Entry::getValue)
-                .forEachOrdered(convertDBtoElementTree::recursivelyInsertElementsIntoDB);
-
+        // threadMapToRoot.entrySet().stream()
+        //         .map(Map.Entry::getValue)
+        //         .forEachOrdered(convertDBtoElementTree::recursivelyInsertElementsIntoDB);
+        convertDBtoElementTree.recursivelyInsertElementsIntoDB(ConvertDBtoElementTree.greatGrandParent);
         onScrollingScrollPane();
     }
 

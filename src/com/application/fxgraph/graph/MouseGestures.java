@@ -64,19 +64,13 @@ public class MouseGestures {
                 e.printStackTrace();
             }
 
-            System.out.println("On click: " + timeStamp.toString() + "; methodID: " + methodId);
 
-            ResultSet methodDefnRS = MethodDefnDAOImpl.selectWhere("id = " + methodId);
+            ResultSet methodDefRS = MethodDefnDAOImpl.selectWhere("id = " + methodId);
             try {
-                methodDefnRS.next();
-                packageName = methodDefnRS.getString("package_name");
-                methodName = methodDefnRS.getString("method_name");
-                parameterTypes = methodDefnRS.getString("parameter_types");
-                System.out.println(">> node width: " + ((CircleCell) node).getWidth() + " : height: " + ((CircleCell) node).getHeight());
-                String str = "Method Name: " + methodName +
-                        "Package Name: " +  packageName +
-                        "Parameter Types: " + parameterTypes +
-                        "Parameters: " + parameters;
+                methodDefRS.next();
+                packageName = methodDefRS.getString("package_name");
+                methodName = methodDefRS.getString("method_name");
+                parameterTypes = methodDefRS.getString("parameter_types");
                 ObservableList<String> list = FXCollections.observableArrayList();
                 list.add("Method Name: " + methodName);
                 list.add("Package Name: " + packageName);
@@ -85,14 +79,12 @@ public class MouseGestures {
 
                 ListView<String> listView = new ListView<>(list);
                 PopOver popOver = new PopOver(listView);
+                popOver.setMaxHeight(40);
                 popOver.show(node);
 
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-            // use cellId and get call trace info and method defn info
-            // print on console
-            // print on pop up.
         }
     };
 

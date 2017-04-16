@@ -1,5 +1,6 @@
 package com.application.fxgraph.graph;
 
+import com.application.fxgraph.ElementHelpers.ConvertDBtoElementTree;
 import com.application.fxgraph.ElementHelpers.Element;
 import javafx.geometry.BoundingBox;
 import javafx.scene.Group;
@@ -35,11 +36,12 @@ public class Graph {
     }
 
     public static void drawPlaceHolderLines() {
+        // Line hPlaceHolderLine = new Line(0, 0, (Element.getMaxLevelCount() + 2) * BoundBox.unitWidthFactor, 0);
         Line hPlaceHolderLine = new Line(0, 0, (Element.getMaxLevelCount() + 2) * BoundBox.unitWidthFactor, 0);
         // hPlaceHolderLine.setStrokeWidth(2);
         cellLayer.getChildren().add(hPlaceHolderLine);
 
-        Line vPlaceHolderLine = new Line(0, 0, 0, Element.getMaxLeafCount() * BoundBox.unitHeightFactor);
+        Line vPlaceHolderLine = new Line(0, 0, 0, ConvertDBtoElementTree.greatGrandParent.getLeafCount() * BoundBox.unitHeightFactor);
         // vPlaceHolderLine.setStrokeWidth(2);
         cellLayer.getChildren().add(vPlaceHolderLine);
         // System.out.println("Lines have been drawn: level: " + Element.getMaxLevelCount() * BoundBox.unitWidthFactor + "; leaf: " + Element.getMaxLeafCount() * BoundBox.unitHeightFactor );
