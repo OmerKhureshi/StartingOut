@@ -1,13 +1,19 @@
 package com.application;
 
+import com.application.db.DAOImplementation.CallTraceDAOImpl;
 import com.application.db.DAOImplementation.ElementDAOImpl;
 import com.application.db.DAOImplementation.ElementToChildDAOImpl;
+import com.application.db.DAOImplementation.MethodDefnDAOImpl;
 import com.application.db.DatabaseUtil;
+import com.application.db.TableNames;
 import com.application.fxgraph.ElementHelpers.ConvertDBtoElementTree;
 import com.application.fxgraph.ElementHelpers.Element;
 import com.application.fxgraph.cells.CircleCell;
 import com.application.fxgraph.graph.*;
+import com.application.fxgraph.layout.base.Layout;
+import com.application.fxgraph.layout.random.RandomLayout;
 import com.application.logs.fileHandler.CallTraceLogFile;
+import com.application.logs.fileHandler.MethodDefinitionLogFile;
 import com.application.logs.fileIntegrity.CheckFileIntegrity;
 import com.application.logs.parsers.ParseCallTrace;
 import javafx.application.Application;
@@ -17,6 +23,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import jdk.nashorn.internal.codegen.CompilerConstants;
+import sun.management.MethodInfo;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,10 +42,7 @@ public class Main extends Application {
     }
 
     static Object lock = new Object();
-/*
-* Remove circles and edges on scroll out.
-* Store or enable information access on click of circle.
-* */
+
     @Override
     public void start(Stage primaryStage) {
         BorderPane root = new BorderPane();
@@ -68,44 +73,31 @@ public class Main extends Application {
         // Check log file integrity.
         CheckFileIntegrity.checkFile(CallTraceLogFile.getFile());
 
-        try {
-            DatabaseUtil.dropCallTrace();
-            DatabaseUtil.createCallTrace();
+        // Call_Trace Table
+        CallTraceDAOImpl.dropTable();
+        CallTraceDAOImpl.createTable();
 
-            ElementDAOImpl.dropTable();
-            ElementToChildDAOImpl.dropTable();
+        // Method_Defn Table
+        MethodDefnDAOImpl.dropTable();
+        MethodDefnDAOImpl.createTable();
 
-//            DatabaseUtil.dropMethodDefn();
-//            DatabaseUtil.createMethodDefn();
+        // Element Table
+        ElementDAOImpl.dropTable();
 
-        } catch (SQLException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
+        // Element_To_Child Table
+        ElementToChildDAOImpl.dropTable();
 
-        //        new ParseCallTrace().readFile(MethodDefinitionLogFile.getFile(),
-//                brokenLineList -> {
-//                    try {
-//                        DatabaseUtil.insertMDStmt(brokenLineList);
-//                    } catch (SQLException e) {
-//                        e.printStackTrace();
-//                    } catch (ClassNotFoundException e) {
-//                        e.printStackTrace();
-//                    } catch (InstantiationException e) {
-//                        e.printStackTrace();
-//                    } catch (IllegalAccessException e) {
-//                        e.printStackTrace();
-//                    }
-//                });
+        new ParseCallTrace().readFile(MethodDefinitionLogFile.getFile(), MethodDefnDAOImpl::insert);
 
         convertDBtoElementTree = new ConvertDBtoElementTree();
         new ParseCallTrace().readFile(CallTraceLogFile.getFile(),
                 parsedLineList -> {
                     try {
-                        DatabaseUtil.insertCTStmt(parsedLineList);
+                        int autoIncrementedId = CallTraceDAOImpl.insert(parsedLineList);
+                        convertDBtoElementTree.StringToElementList(parsedLineList, autoIncrementedId);
                     } catch (SQLException | ClassNotFoundException | IllegalAccessException | InstantiationException e) {  // Todo Create a custom exception class and clean this.
                         e.printStackTrace();
                     }
-                    convertDBtoElementTree.StringToElementList(parsedLineList);
                 });
         convertDBtoElementTree.calculateElementProperties();
         Graph.drawPlaceHolderLines();
@@ -237,7 +229,28 @@ public class Main extends Application {
         graph.endUpdate();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args){
         launch(args);
+        // new Main().dummy();
+    }
+
+    public void dummy() {
+        // Call_Trace Table
+        // CallTraceDAOImpl.dropTable();
+        // CallTraceDAOImpl.createTable();
+        // Method_Defn Table
+        // MethodDefnDAOImpl.dropTable();
+        try {
+            boolean res = DatabaseUtil.getConnection().getMetaData().getTables(null, null, TableNames.METHOD_DEFINITION_TABLE, null).next();
+            System.out.println(res);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // MethodDefnDAOImpl.createTable();
+        System.out.println("DONE");
+        // // Element Table
+        // ElementDAOImpl.dropTable();
+        // // Element_To_Child Table
+        // ElementToChildDAOImpl.dropTable();
     }
 }

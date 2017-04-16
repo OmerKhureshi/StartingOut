@@ -15,7 +15,7 @@ public class ZoomableScrollPane extends ScrollPane {
     Group zoomGroup;
     Scale scaleTransform;
     Node content;
-    double scaleValue = 1.0;
+    static double scaleValue = 1.0;
     double delta = 0.1;
     Main main;
 
@@ -39,7 +39,7 @@ public class ZoomableScrollPane extends ScrollPane {
         main = m;
     }
 
-    public double getScaleValue() {
+    public static double getScaleValue() {
         return scaleValue;
     }
 
@@ -123,8 +123,7 @@ public class ZoomableScrollPane extends ScrollPane {
          */
         @Override
         public void handle(ScrollEvent scrollEvent) {
-            if (scrollEvent.isControlDown())
-            {
+            if (scrollEvent.isControlDown()) {
                 if (scrollEvent.getDeltaY() < 0) {
                     scaleValue -= delta;
                     if (scaleValue < .05) {
@@ -137,10 +136,8 @@ public class ZoomableScrollPane extends ScrollPane {
 
                 zoomTo(scaleValue);
                 scrollEvent.consume();
-                } else {
-
-                // scrollEvent.consume();
             }
+            // System.out.println("Zoom value: " + scaleValue);
         }
     }
 }

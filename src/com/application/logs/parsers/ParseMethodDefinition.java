@@ -19,26 +19,26 @@ public class ParseMethodDefinition implements FileParser {
     /*
     I need a call back method in readFile method definition, that invokes this call back every time a new line is read from the line.
      */
-    @Override
-    public boolean readFile(File logFile) {
-        try {
-            br = new BufferedReader(new FileReader(logFile));
-            // ToDo Look into streams to perform buffered read and insert.
-            while((line = br.readLine()) != null) {
-                List<String> brokenLineList = parse(line);
-                DatabaseUtil.insertMDStmt(brokenLineList);
-                ConvertDBtoElementTree convertDBtoElementTree = new ConvertDBtoElementTree();
-                convertDBtoElementTree.StringToElementList(brokenLineList);
-                convertDBtoElementTree.calculateElementProperties();
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        return false;
-    }
+    // public boolean readFile(File logFile) {
+    //     try {
+    //         br = new BufferedReader(new FileReader(logFile));
+    //         // ToDo Look into streams to perform buffered read and insert.
+    //         while((line = br.readLine()) != null) {
+    //             List<String> brokenLineList = parse(line);
+    //             DatabaseUtil.insertMDStmt(brokenLineList);
+    //             ConvertDBtoElementTree convertDBtoElementTree = new ConvertDBtoElementTree();
+    //             convertDBtoElementTree.StringToElementList(brokenLineList);
+    //             convertDBtoElementTree.calculateElementProperties();
+    //         }
+    //     } catch (FileNotFoundException e) {
+    //         e.printStackTrace();
+    //     } catch (Exception e){
+    //         e.printStackTrace();
+    //     }
+    //     return false;
+    // }
 
+    @Override
     public void readFile(File logFile, Consumer<List<String>> cmd) {
         try {
             br = new BufferedReader(new FileReader(logFile));

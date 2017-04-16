@@ -24,6 +24,7 @@ public class DatabaseUtil {
         }
         return false;
     }
+
     private static Connection createDatabaseConnection() {
 
         String driver = "org.apache.derby.jdbc.EmbeddedDriver";

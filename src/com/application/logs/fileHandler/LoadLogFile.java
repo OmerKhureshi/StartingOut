@@ -18,13 +18,13 @@ public class LoadLogFile {
         MethodDefn, CallTrace
     }
 
-    public void load(LogType logType) {
-        if (logType == LogType.MethodDefn) {
-            new ParseMethodDefinition().readFile(MethodDefinitionLogFile.getFile());
-        } else if (logType == LogType.CallTrace) {
-            new ParseCallTrace().readFile(CallTraceLogFile.getFile());
-        }
-    }
+    // public void load(LogType logType) {
+    //     if (logType == LogType.MethodDefn) {
+    //         new ParseMethodDefinition().readFile(MethodDefinitionLogFile.getFile());
+    //     } else if (logType == LogType.CallTrace) {
+    //         new ParseCallTrace().readFile(CallTraceLogFile.getFile());
+    //     }
+    // }
 
     public static void main(String[] args) {
 

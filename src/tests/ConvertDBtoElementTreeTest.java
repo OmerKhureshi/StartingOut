@@ -30,7 +30,7 @@ class ConvertDBtoElementTreeTest {
         logInTest1.add(Arrays.asList("0", "1", "0", "EXIT", "params", "21:34:55"));
         // Construct tree.
         for (List<String> line : logInTest1) {
-            convertDBtoElementTreeTest1.StringToElementList(line);
+            convertDBtoElementTreeTest1.StringToElementList(line, 0);
         }
 
         /*
@@ -52,7 +52,7 @@ class ConvertDBtoElementTreeTest {
         logInTest2.add(Arrays.asList("0", "2", "0", "EXIT", "params", "21:34:55"));
         // Construct tree.
         for (List<String> line : logInTest2) {
-            convertDBtoElementTreeTest2.StringToElementList(line);
+            convertDBtoElementTreeTest2.StringToElementList(line, 0);
         }
 
         /*
@@ -87,7 +87,7 @@ class ConvertDBtoElementTreeTest {
         logInTest3.add(Arrays.asList("0", "3", "0", "EXIT", "params", "21:34:55"));
         // Construct tree
         for (List<String> line : logInTest3) {
-            convertDBtoElementTreeTest3.StringToElementList(line);
+            convertDBtoElementTreeTest3.StringToElementList(line, 0);
         }
     }
 

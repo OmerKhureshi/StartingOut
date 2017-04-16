@@ -15,38 +15,39 @@ public class ParseCallTrace implements FileParser {
     private BufferedReader br;
     String line;
     List<String> vals;
-    @Override
-    public boolean readFile(File logFile) {
-        try {
-            br = new BufferedReader(new FileReader(logFile));
-            while((line = br.readLine()) != null) {
-                DatabaseUtil.insertCTStmt(parse(line));
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        return false;
-    }
 
+    // public boolean readFile(File logFile) {
+    //     try {
+    //         br = new BufferedReader(new FileReader(logFile));
+    //         while((line = br.readLine()) != null) {
+    //             DatabaseUtil.insertCTStmt(parse(line));
+    //         }
+    //     } catch (FileNotFoundException e) {
+    //         e.printStackTrace();
+    //     } catch (Exception e){
+    //         e.printStackTrace();
+    //     }
+    //     return false;
+    // }
+    //
+    @Override
     public void readFile(File logFile, Consumer<List<String>> cmd) {
         try {
             br = new BufferedReader(new FileReader(logFile));
             // ToDo Look into streams to perform buffered read and insert.
-            while((line = br.readLine()) != null) {
+            while ((line = br.readLine()) != null) {
                 List<String> brokenLineList = parse(line);
                 cmd.accept(brokenLineList);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public List<String> parse(String line) {
-//        System.out.println(Arrays.asList(line.split("\\|")));
+        //        System.out.println(Arrays.asList(line.split("\\|")));
         return Arrays.asList(line.split("\\|"));
     }
 }

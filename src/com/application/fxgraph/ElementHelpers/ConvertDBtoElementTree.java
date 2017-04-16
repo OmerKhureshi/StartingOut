@@ -22,7 +22,6 @@ import java.util.List;
 
 public class ConvertDBtoElementTree {
     private Map<Integer, Element> threadMapToRoot = new LinkedHashMap<>();
-    // private Deque<Element> stack = new LinkedList<>();
     public ArrayList<Element> rootsList;
     Element grandParent, parent, cur;
 
@@ -30,13 +29,13 @@ public class ConvertDBtoElementTree {
         rootsList = new ArrayList<>();
     }
 
-    public void StringToElementList(List<String> line) {
+    public void StringToElementList(List<String> line, int fkCallTrace) {
         // parent = stack.peek();
         String msg = line.get(3);  // ToDo replace hardcoded indices with universal indices.
         switch (msg.toUpperCase()) {
             case "ENTER":   // Todo Performance: Use int codes instead of String like "ENTER":
                 parent = cur;
-                cur = new Element(parent);
+                cur = new Element(parent, fkCallTrace);
                 // stack.push(cur);
                 /*if (parent != null) {
                     ElementToChildDAOImpl.insert(parent.getElementId(), cur.getElementId());
@@ -57,7 +56,7 @@ public class ConvertDBtoElementTree {
 
         if (parent == null && !msg.equalsIgnoreCase("EXIT")) {
             if (!threadMapToRoot.containsKey(threadId)) {
-                grandParent = new Element(null);
+                grandParent = new Element(null, -1);
                 grandParent.setChildren(new ArrayList<>(Arrays.asList(cur)));
                 cur.setParent(grandParent);
                 threadMapToRoot.put(threadId, grandParent);
@@ -123,11 +122,6 @@ public class ConvertDBtoElementTree {
                 root.getParent() == null? -1 : root.getParent().getElementId(),
                 root.getElementId());
 
-//        System.out.println(root.getElementId() + " : " + root.getLevelCount()
-//                + " : " + root.getLeafCount());
-
-        // Recursively call this same method on all the children of current element.
-//        Optional.ofNullable(root.getChildren()).ifPresent(list -> list.stream().forEachOrdered(this::recursivelyInsertElementsIntoDB));
         if (root.getChildren() != null) {
             root.getChildren().stream().forEachOrdered(this::recursivelyInsertElementsIntoDB);
         }
@@ -139,7 +133,6 @@ public class ConvertDBtoElementTree {
 
         Map<String, CircleCell> mapCircleCellsOnUI = model.getMapCircleCellsOnUI();
         Map<String, Edge> mapEdgesOnUI = model.getMapEdgesOnUI();
-        // get current view port.
         BoundingBox boundingBox = Graph.getViewPortDims(scrollPane);
         double viewPortMinX = boundingBox.getMinX();
         double viewPortMaxX = boundingBox.getMaxX();
@@ -161,22 +154,7 @@ public class ConvertDBtoElementTree {
                 float xCoordinate = rs.getFloat("bound_box_x_coordinate");
                 float yCoordinate = rs.getFloat("bound_box_y_coordinate");
                 String parentId = String.valueOf(rs.getInt("parent_id"));
-                // System.out.println("Looking at cell: " + id);
-                // System.out.println("mapCircleCellsOnUI: ");
-                // mapCircleCellsOnUI.entrySet().stream()
-                //         .map(stringCircleCellEntry -> stringCircleCellEntry.getValue())
-                //         .forEach(s -> System.out.println( s.getCellId() + " : layoutX: " + s.getLayoutX() + " : layoutY: " + s.getLayoutY()));
-                // System.out.println("");
-
-                // System.out.println("mapEdgesOnUI: ");
-                // mapEdgesOnUI.entrySet().stream()
-                //         .map(stringCircleCellEntry -> stringCircleCellEntry.getKey())
-                //         .forEach(s -> System.out.print(s + " ; "));
-                // System.out.println("");
-                //  Do a periodic check and remove all ui elements that are not in the current viewport.
-                // Perform the above check on mapCircleCellsOnUI
                 if (!mapCircleCellsOnUI.containsKey(id)) {
-                    // System.out.println("    new cell " + id);
                     curCircleCell = new CircleCell(id, xCoordinate, yCoordinate);
                     model.addCell(curCircleCell);
                     parentCircleCell = mapCircleCellsOnUI.get(parentId);
@@ -187,7 +165,6 @@ public class ConvertDBtoElementTree {
                             float yCoordinateTemp = rsTemp.getFloat("bound_box_y_coordinate");
                             parentCircleCell = new CircleCell(parentId, xCoordinateTemp, yCoordinateTemp);
                             model.addCell(parentCircleCell);
-                            // System.out.println("    new parent cell: " + parentCircleCell.getCellId());
                         }
                     }
                 }  else {
@@ -224,14 +201,14 @@ public class ConvertDBtoElementTree {
         double minY = curViewPort.getMinY();
 
         int offset = 20;
-        BoundingBox shrinkedBB = new BoundingBox(minX + offset, minY + offset, curViewPort.getWidth() - (2 * offset), curViewPort.getHeight() - (2 * offset));
+        BoundingBox shrunkBB = new BoundingBox(minX + offset, minY + offset, curViewPort.getWidth() - (2 * offset), curViewPort.getHeight() - (2 * offset));
 
         synchronized (lock) {
             Iterator i = mapCircleCellsOnUI.entrySet().iterator();
             while (i.hasNext()) {
                 Map.Entry<String, CircleCell> entry = (Map.Entry) i.next();
                 CircleCell cell = entry.getValue();
-                if (!shrinkedBB.contains(cell.getLayoutX(), cell.getLayoutY())) {
+                if (!shrunkBB.contains(cell.getLayoutX(), cell.getLayoutY())) {
                     removeCircleCells.add(cell.getCellId());
                 }
             }
@@ -249,7 +226,7 @@ public class ConvertDBtoElementTree {
                 Map.Entry<String, Edge> entry = (Map.Entry) j.next();
                 Edge edge = entry.getValue();
                 Line line = (Line) edge.getChildren().get(0);
-                if (!shrinkedBB.contains(line.getEndX(), line.getEndY())) {
+                if (!shrunkBB.contains(line.getEndX(), line.getEndY())) {
                     removeEdges.add(edge.getEdgeId());
                 }
             }

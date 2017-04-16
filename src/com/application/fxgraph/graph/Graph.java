@@ -12,7 +12,7 @@ public class Graph {
     private Model model;
     private Group canvas;
     private ZoomableScrollPane scrollPane;
-//    private ScrollPane scrollPane;
+    //    private ScrollPane scrollPane;
     MouseGestures mouseGestures;
 
     /**
@@ -98,24 +98,33 @@ public class Graph {
     }
 
     public double getScale() {
-//        throw new IllegalStateException(">>>>>>>>>> Invoking getScale()");
+        //        throw new IllegalStateException(">>>>>>>>>> Invoking getScale()");
         return this.scrollPane.getScaleValue();
     }
 
     public static BoundingBox getViewPortDims(ScrollPane scrollPane) {
+        double scale = ZoomableScrollPane.getScaleValue();
+
         // http://stackoverflow.com/questions/26240501/javafx-scrollpane-update-viewportbounds-on-scroll
-        double hValue = scrollPane.getHvalue();  // horizontal scroll bar position.
-        double contentWidth = scrollPane.getContent().getLayoutBounds().getWidth();
-        double viewportWidth = scrollPane.getViewportBounds().getWidth();
+        double hValue = scrollPane.getHvalue();
+        double scaledContentWidth = scrollPane.getContent().getLayoutBounds().getWidth();// * scale;
+        double scaledViewportWidth = scrollPane.getViewportBounds().getWidth() / scale;
 
         double vValue = scrollPane.getVvalue();
-        double contentHeight = scrollPane.getContent().getLayoutBounds().getHeight();
-        double viewportHeight = scrollPane.getViewportBounds().getHeight();
+        double scaledContentHeight = scrollPane.getContent().getLayoutBounds().getHeight();// * scale;
+        double scaledViewportHeight = scrollPane.getViewportBounds().getHeight() / scale;
 
-        double minX = hValue * (contentWidth - viewportWidth);
-        double minY = vValue * (contentHeight - viewportHeight);
-        // System.out.println("Scrollpane height: " + scrollPane.getViewportBounds().getHeight() + " : width: " + scrollPane.getViewportBounds().getWidth());
-        BoundingBox boundingBox = new BoundingBox(minX, minY, viewportWidth, viewportHeight);
+        double minX = hValue * (scaledContentWidth - scaledViewportWidth);
+        double minY = vValue * (scaledContentHeight - scaledViewportHeight);
+
+        // System.out.println("Scale: " + scale);
+        // System.out.println("Content height: " + scaledContentHeight + " : width: " + scaledContentWidth
+        //         + " actuals: height: " + scaledContentHeight / scale + " : width: " + scaledContentWidth / scale);
+        //
+        // System.out.println("Scrollpane height: " + scaledViewportHeight + " : width: " + scaledViewportWidth
+        //         + " actuals: height: " + scaledViewportHeight * scale + " : width: " + scaledViewportWidth * scale);
+
+        BoundingBox boundingBox = new BoundingBox(minX, minY, scaledViewportWidth, scaledViewportHeight);
         return boundingBox;
     }
 }

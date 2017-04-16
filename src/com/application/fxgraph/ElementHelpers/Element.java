@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Element {
     private static final AtomicInteger count = new AtomicInteger(0);
     private int elementId;
+    private int fkCallTrace;
     private Element parent;
     private List<Element> children;
     private int indexInParent;
@@ -41,6 +42,11 @@ public class Element {
             // If this element is the root.
             setIndexInParent(0);
         }
+    }
+
+    public Element( Element parent, int fkCallTrace) {
+        this(parent);
+        this.fkCallTrace = fkCallTrace;
     }
 
     public int getElementId() {
@@ -285,4 +291,13 @@ public class Element {
 //        boundBox.xCoordinate *= coordMultiplier;
 //        boundBox.yCoordinate *= coordMultiplier;
     }
+
+    public int getFkCallTrace() {
+        return fkCallTrace;
+    }
+
+    public void setFkCallTrace(int fkCallTrace) {
+        this.fkCallTrace = fkCallTrace;
+    }
+
 }
