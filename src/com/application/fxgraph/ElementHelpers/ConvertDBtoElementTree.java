@@ -243,7 +243,6 @@ public class ConvertDBtoElementTree {
                 // }
                 if (!shrunkBB.intersects(lineBB)) {
                     removeEdges.add(edge.getEdgeId());
-
                 }
             }
 
