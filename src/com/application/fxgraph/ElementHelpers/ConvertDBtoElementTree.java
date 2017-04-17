@@ -31,7 +31,6 @@ public class ConvertDBtoElementTree {
 
     public static Element greatGrandParent = new Element(null, -2);
     public void StringToElementList(List<String> line, int fkCallTrace) {
-        System.out.println("looking at line: " + line.toString());
         String msg = line.get(3);  // ToDo replace hardcoded indices with universal indices.
         Integer threadId = Integer.valueOf(line.get(1));
 
@@ -61,7 +60,6 @@ public class ConvertDBtoElementTree {
                 grandParent.setChildren(new ArrayList<>(Arrays.asList(cur)));
                 cur.setParent(grandParent);
                 threadMapToRoot.put(threadId, grandParent);
-                System.out.println(">>> new grandParent: thredID: " + threadId + " : id" + grandParent.getElementId()+ " : size: " + threadMapToRoot.size());
                 /*defaultInitialize(grandParent);
                 ElementDAOImpl.insert(grandParent);*/
             } else {
@@ -147,14 +145,22 @@ public class ConvertDBtoElementTree {
         CircleCell curCircleCell = null;
         CircleCell parentCircleCell = null;
 
-        // return a list of circle cells back to the calling method.
         try {
             while (rs.next()) {
                 String id = String.valueOf(rs.getInt("id"));
+                String parentId = String.valueOf(rs.getInt("parent_id"));
+                int collapsed = rs.getInt("collapsed");
                 float xCoordinate = rs.getFloat("bound_box_x_coordinate");
                 float yCoordinate = rs.getFloat("bound_box_y_coordinate");
-                String parentId = String.valueOf(rs.getInt("parent_id"));
-                if (!mapCircleCellsOnUI.containsKey(id)) {
+
+                /*
+                * collapsed - actions
+                *     0     - Show cell on UI
+                *     1     - parent of this cell was minimized. Don't show on UI
+                *     2     - this cell was minimized. Show on UI.
+                *     3     - parent of this cell was minimized. this cell was minimized. Don't expand this cell's children. Don't show on UI.
+                */
+                if (!mapCircleCellsOnUI.containsKey(id) && (collapsed == 0 || collapsed == 2)) {
                     curCircleCell = new CircleCell(id, xCoordinate, yCoordinate);
                     model.addCell(curCircleCell);
                     parentCircleCell = mapCircleCellsOnUI.get(parentId);
@@ -184,6 +190,7 @@ public class ConvertDBtoElementTree {
     }
 
     Object lock = Main.getLock();
+
     public void removeFromUI(Graph graph) {
         CellLayer cellLayer = (CellLayer) graph.getCellLayer();
         Model model = graph.getModel();
@@ -226,8 +233,17 @@ public class ConvertDBtoElementTree {
                 Map.Entry<String, Edge> entry = (Map.Entry) j.next();
                 Edge edge = entry.getValue();
                 Line line = (Line) edge.getChildren().get(0);
-                if (!shrunkBB.contains(line.getEndX(), line.getEndY())) {
+                BoundingBox lineBB = new BoundingBox(
+                        line.getStartX(),
+                        Math.min(line.getStartY(), line.getEndY()),
+                        Math.abs(line.getEndX() - line.getStartX()),
+                        Math.abs(line.getEndY() - line.getStartY()) );
+                // if (!shrunkBB.contains(line.getEndX(), line.getEndY())) {
+                //     removeEdges.add(edge.getEdgeId());
+                // }
+                if (!shrunkBB.intersects(lineBB)) {
                     removeEdges.add(edge.getEdgeId());
+
                 }
             }
 

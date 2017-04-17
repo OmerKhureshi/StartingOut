@@ -20,6 +20,7 @@ import javafx.application.Application;
 import javafx.geometry.BoundingBox;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -58,15 +59,22 @@ public class Main extends Application {
         primaryStage.show();
 
         addGraphCellComponents();
+        Group statusBar = new Group();
+        statusBar.getChildren().add(new Label("this is status bar"));
+        root.setBottom(statusBar);
+
+        Group menuBar = new Group();
+        menuBar.getChildren().add(new Label("this is menu bar"));
+        root.setTop(menuBar);
 
         // Original.
         // addGraphComponents();
         // Layout layout = new RandomLayout(graph);
         // layout.execute();
 
-        // System.out.println("Max memory: " + Runtime.getRuntime().maxMemory() / 1000000);
-        // System.out.println("Free memory: " + Runtime.getRuntime().freeMemory() / 1000000);
-        // System.out.println("Total memory: " + Runtime.getRuntime().totalMemory() / 1000000);
+        System.out.println("Max memory: " + Runtime.getRuntime().maxMemory() / 1000000);
+        System.out.println("Free memory: " + Runtime.getRuntime().freeMemory() / 1000000);
+        System.out.println("Total memory: " + Runtime.getRuntime().totalMemory() / 1000000);
     }
 
     private void addGraphCellComponents() {
@@ -106,7 +114,7 @@ public class Main extends Application {
 
         // threadMapToRoot.entrySet().stream()
         //         .map(Map.Entry::getValue)
-        //         .forEachOrdered(convertDBtoElementTree::recursivelyInsertElementsIntoDB);
+        //         .forEachOrdered(convertDBtoElementTree::recursivelyUpdateColumn);
         convertDBtoElementTree.recursivelyInsertElementsIntoDB(ConvertDBtoElementTree.greatGrandParent);
         onScrollingScrollPane();
     }

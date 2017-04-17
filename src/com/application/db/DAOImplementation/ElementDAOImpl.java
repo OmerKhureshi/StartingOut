@@ -47,7 +47,8 @@ public class ElementDAOImpl {
                         "bound_box_y_coordinate FLOAT, " +
                         "index_in_parent INTEGER, " +
                         "leaf_count INTEGER, " +
-                        "level_count INTEGER" +
+                        "level_count INTEGER, " +
+                        "collapsed INTEGER" +
                         ")";
                 ps.execute(sql);
                 //                System.out.println("Creating table " + TableNames.ELEMENT_TABLE);
@@ -59,8 +60,6 @@ public class ElementDAOImpl {
     }
 
     public static void insert(Element element) {
-        //        System.out.println("starting insert");
-        //        System.out.println("ElementDAOImpl:insert: " + isTableCreated());
         if (!isTableCreated())
             createTable();
         String sql = null;
@@ -81,7 +80,9 @@ public class ElementDAOImpl {
                     element.getBoundBox().yCoordinate + ", " +
                     element.getIndexInParent() + ", " +
                     element.getLeafCount() + ", " +
-                    element.getLevelCount() + ")";
+                    element.getLevelCount() +  ", " +
+                    element.getIsCollapsed() +
+                    ")";
 
             ps.execute(sql);
             //            System.out.println(TableNames.ELEMENT_TABLE + ": Inserted: " + sql);
@@ -127,5 +128,27 @@ public class ElementDAOImpl {
             }
         }
         throw new IllegalStateException("Table does not exist. Hence cannot fetch any rows from it.");
+    }
+
+    public static void updateWhere(String columnName, String columnValue, String where) {
+        if (isTableCreated()) {
+            try  {
+                conn = DatabaseUtil.getConnection();
+                ps = conn.createStatement();
+                sql = "UPDATE " + ELEMENT_TABLE +
+                        " SET " + columnName + " = " + columnValue +
+                        " WHERE " + where;
+                //                System.out.println(">>> we got " + sql);
+                ps.executeUpdate(sql);
+                return;
+                //                resultSet.next();
+                //                System.out.println(resultSet.getInt("id"));
+            } catch (SQLException e) {
+                System.out.println("Line that threw error: " + sql);
+                e.printStackTrace();
+            }
+        }
+        throw new IllegalStateException("Table does not exist. Hence cannot fetch any rows from it.");
+
     }
 }

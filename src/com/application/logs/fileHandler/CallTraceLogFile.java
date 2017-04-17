@@ -3,8 +3,8 @@ package com.application.logs.fileHandler;
 import java.io.File;
 
 public class CallTraceLogFile {
-    // private static String fileName = "L-Instrumentation_call_trace_works_basic_complexity_3.txt";
-    private static String fileName = "L-Instrumentation_call_trace_works_basic_complexity_mt_1.txt";
+    // private static String fileName = "L-Instrumentation_call_trace.txt";
+    private static String fileName = "L-Instrumentation_call_trace_works_basic_complexity_4.txt";
     private static File file = new File(Thread.currentThread().getContextClassLoader().getResource(fileName).getFile());
 
     CallTraceLogFile() {

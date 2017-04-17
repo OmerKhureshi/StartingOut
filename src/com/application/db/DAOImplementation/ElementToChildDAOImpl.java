@@ -4,9 +4,11 @@ import com.application.db.DatabaseUtil;
 import com.application.db.TableNames;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import static com.application.db.TableNames.ELEMENT_TABLE;
 import static com.application.db.TableNames.ELEMENT_TO_CHILD_TABLE;
 
 public class ElementToChildDAOImpl {
@@ -16,8 +18,8 @@ public class ElementToChildDAOImpl {
         if (!isTableCreated()) {
             try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
                 String sql = "CREATE TABLE " + ELEMENT_TO_CHILD_TABLE + " (" +
-                        "    \"parent_id\" INTEGER, " +  // todo define foreign key
-                        "    \"child_id\" INTEGER" +  // todo define foreign key
+                        "parent_id INTEGER, " +  // todo define foreign key
+                        "child_id INTEGER" +  // todo define foreign key
                         ")";
                 ps.execute(sql);
                 System.out.println("Creating table " + TableNames.ELEMENT_TO_CHILD_TABLE);
@@ -66,6 +68,27 @@ public class ElementToChildDAOImpl {
             }
         }
 
+    }
+
+    static Connection conn;
+    static Statement ps;
+    static String sql;
+    public static ResultSet selectWhere(String where) {
+        if (isTableCreated()) {
+            try  {
+                conn = DatabaseUtil.getConnection();
+                ps = conn.createStatement();
+                sql = "SELECT * FROM " + TableNames.ELEMENT_TO_CHILD_TABLE + " WHERE " + where;
+                ResultSet resultSet = ps.executeQuery(sql);
+                //                resultSet.next();
+                //                System.out.println(resultSet.getInt("id"));
+                return resultSet;
+            } catch (SQLException e) {
+                System.out.println("Line that threw error: " + sql);
+                e.printStackTrace();
+            }
+        }
+        throw new IllegalStateException("Table does not exist. Hence cannot fetch any rows from it.");
     }
 
 }

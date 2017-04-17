@@ -14,6 +14,9 @@ public class Element {
     private static final AtomicInteger count = new AtomicInteger(0);
     private int elementId;
     private int fkCallTrace;
+
+
+    private int isCollapsed = 0;
     private Element parent;
     private List<Element> children;
     private int indexInParent;
@@ -300,4 +303,12 @@ public class Element {
         this.fkCallTrace = fkCallTrace;
     }
 
+
+    public void setIsCollapsed(int isCollapsed) {
+        this.isCollapsed = isCollapsed;
+    }
+
+    public int getIsCollapsed() {
+        return isCollapsed;
+    }
 }

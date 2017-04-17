@@ -32,8 +32,6 @@ public class Model {
 
     Map<String, Edge> mapEdgesOnUI = new HashMap<>();
 
-
-
     List<Edge> listEdgesOnUI = new ArrayList<>();
     public Model() {
         graphParent = new Cell("_ROOT_");
