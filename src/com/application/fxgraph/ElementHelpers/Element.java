@@ -3,6 +3,15 @@ package com.application.fxgraph.ElementHelpers;
 import com.application.fxgraph.cells.CircleCell;
 import com.application.fxgraph.graph.BoundBox;
 
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -13,9 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Element {
     private static final AtomicInteger count = new AtomicInteger(0);
     private int elementId;
-    private int fkCallTrace;
-
-
+    private int fkEnterCallTrace;
+    private int fkExitCallTrace;
     private int isCollapsed = 0;
     private Element parent;
     private List<Element> children;
@@ -47,9 +55,9 @@ public class Element {
         }
     }
 
-    public Element( Element parent, int fkCallTrace) {
+    public Element( Element parent, int fkEnterCallTrace) {
         this(parent);
-        this.fkCallTrace = fkCallTrace;
+        this.fkEnterCallTrace = fkEnterCallTrace;
     }
 
     public int getElementId() {
@@ -295,12 +303,20 @@ public class Element {
 //        boundBox.yCoordinate *= coordMultiplier;
     }
 
-    public int getFkCallTrace() {
-        return fkCallTrace;
+    public int getFkEnterCallTrace() {
+        return fkEnterCallTrace;
     }
 
-    public void setFkCallTrace(int fkCallTrace) {
-        this.fkCallTrace = fkCallTrace;
+    public void setFkEnterCallTrace(int fkEnterCallTrace) {
+        this.fkEnterCallTrace = fkEnterCallTrace;
+    }
+
+    public int getFkExitCallTrace() {
+        return fkExitCallTrace;
+    }
+
+    public void setFkExitCallTrace(int fkExitCallTrace) {
+        this.fkExitCallTrace = fkExitCallTrace;
     }
 
 
@@ -310,5 +326,18 @@ public class Element {
 
     public int getIsCollapsed() {
         return isCollapsed;
+    }
+
+    public static void main(String[] args) {
+
+        java.time.Instant instant = Instant.now();
+        System.out.println(instant);
+        java.sql.Timestamp timestamp = Timestamp.from(instant);
+        System.out.println(timestamp);
+        // string -> instant
+        // String str = "2017-04-18T00:34:13.694Z";
+        // Instant instant = Instant.parse(str);
+        // System.out.println(instant.getEpochSecond());
+
     }
 }

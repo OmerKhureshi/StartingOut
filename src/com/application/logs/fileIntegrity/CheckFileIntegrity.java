@@ -16,12 +16,19 @@ public class CheckFileIntegrity {
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
             while((line = br.readLine()) != null) {
+                System.out.println(">>> " + line);
                 String msg = line.split("\\|")[3];
                     switch (msg.toUpperCase()) {
+                        case "WAIT-ENTER":
+                        case "NOTIFY-ENTER":
+                        case "NOTIFYALL-ENTER":
                         case "ENTER":
                             stack.push(1);
                             break;
 
+                        case "WAIT-EXIT":
+                        case "NOTIFY-EXIT":
+                        case "NOTIFYALL-EXIT":
                         case "EXIT":
                             stack.pop();
                             break;

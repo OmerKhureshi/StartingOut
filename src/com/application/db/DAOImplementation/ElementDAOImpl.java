@@ -3,7 +3,6 @@ package com.application.db.DAOImplementation;
 import com.application.db.DatabaseUtil;
 import com.application.db.TableNames;
 import com.application.fxgraph.ElementHelpers.Element;
-import javafx.scene.control.Tab;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -34,7 +33,8 @@ public class ElementDAOImpl {
                 String sql = "CREATE TABLE " + ELEMENT_TABLE + " (" +
                         "id INTEGER NOT NULL, " +
                         "parent_id INTEGER, " +  // todo define foreign key
-                        "id_call_trace INTEGER, " +  // not a foreign key.
+                        "id_enter_call_trace INTEGER, " +  // not a foreign key.
+                        "id_exit_call_trace INTEGER, " +  // not a foreign key.
                         "bound_box_x_top_left FLOAT, " +
                         "bound_box_y_top_left FLOAT, " +
                         "bound_box_x_top_right FLOAT, " +
@@ -67,7 +67,8 @@ public class ElementDAOImpl {
             sql = "INSERT INTO " + TableNames.ELEMENT_TABLE + " VALUES (" +
                     element.getElementId() + ", " +
                     (element.getParent() == null? -1 : element.getParent().getElementId()) + ", " +
-                    element.getFkCallTrace() + ", " +
+                    element.getFkEnterCallTrace() + ", " +
+                    element.getFkExitCallTrace() + ", " +
                     element.getBoundBox().xTopLeft + ", " +
                     element.getBoundBox().yTopLeft + ", " +
                     element.getBoundBox().xTopRight + ", " +

@@ -16,6 +16,7 @@ import org.controlsfx.control.PopOver;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,14 +33,14 @@ public class MouseGestures {
 
     public void makeDraggable(final Node node) {
         // node.addEventFilter(MouseEvent.ANY, onMouseHoverToShowInfoEventHandler);
-
         // node.addEventFilter(MouseEvent.ANY, event -> System.out.println(event));
+
         node.setOnMousePressed(onMousePressedToCollapseTree);
         node.setOnMouseEntered(onMouseHoverToShowInfoEventHandler);
         node.setOnMouseExited(onMouseExitToDismissPopover);
         // node.setOnMousePressed(onMousePressedEventHandler);
-        node.setOnMouseDragged(onMouseDraggedEventHandler);
-        node.setOnMouseReleased(onMouseReleasedEventHandler);
+        // node.setOnMouseDragged(onMouseDraggedEventHandler);
+        // node.setOnMouseReleased(onMouseReleasedEventHandler);
     }
 
     PopOver popOver;
@@ -54,23 +55,28 @@ public class MouseGestures {
             System.out.println("Clicked Cell: " + cell.getCellId());
             String timeStamp;
             int methodId,  processId, threadId;
-            String parameters, packageName, methodName, parameterTypes;
+            String parameters, packageName = "", methodName = "", parameterTypes = "", eventType, lockObjectId = "";
 
-            ResultSet callTraceRS = CallTraceDAOImpl.selectWhere("id = (Select id_call_trace FROM " + TableNames.ELEMENT_TABLE  +
+            ResultSet callTraceRS = CallTraceDAOImpl.selectWhere("id = (Select id_enter_call_trace FROM " + TableNames.ELEMENT_TABLE  +
                     " WHERE id = "+ cell.getCellId() +")");
             try {
                 if (callTraceRS.next()) {
+                    System.out.println("Found id in element table");
                     timeStamp = callTraceRS.getString("time_instant");
                     methodId = callTraceRS.getInt("method_id");
                     processId = callTraceRS.getInt("process_id");
                     threadId = callTraceRS.getInt("thread_id");
                     parameters = callTraceRS.getString("parameters");
+                    eventType = callTraceRS.getString("message");
+                    lockObjectId = callTraceRS.getString("lockobjid");
                     ResultSet methodDefRS = MethodDefnDAOImpl.selectWhere("id = " + methodId);
 
-                    methodDefRS.next();
-                    packageName = methodDefRS.getString("package_name");
-                    methodName = methodDefRS.getString("method_name");
-                    parameterTypes = methodDefRS.getString("parameter_types");
+                    if (methodDefRS.next()) {
+                        System.out.println("found id in method def table.");
+                        packageName = methodDefRS.getString("package_name");
+                        methodName = methodDefRS.getString("method_name");
+                        parameterTypes = methodDefRS.getString("parameter_types");
+                    }
                     // ObservableList<String> list = FXCollections.observableArrayList();
                     // list.add("Method Name: " + methodName);
                     // list.add("Package Name: " + packageName);
@@ -117,6 +123,108 @@ public class MouseGestures {
                     // Popup popup = new Popup();
                     // popup.getContent().add(gridPane);
                     // popup.show(node.getScene().getWindow());
+
+                    /*
+                    * wait-enter -> lock released.
+                    *       Get all elements with same lock id and notify-enter
+                    * wait-exit -> lock reacquired.
+                    *
+                    * notify-enter / notify-exit -> lock released
+                    *
+                    * object lock flow:
+                    * wait-enter -> notify-enter / notify-exit -> wait-exit
+                    * */
+
+
+                    if (eventType.equalsIgnoreCase("WAIT-ENTER")) {
+                        ResultSet rs = CallTraceDAOImpl.selectWhere("lockobjid = '" + lockObjectId + "'"+
+                                " AND (message = 'NOTIFY-ENTER' OR message = 'NOTIFYALL-ENTER')");
+                        int ctId = -1;
+                        long waitTimeStamp = (Instant.parse(timeStamp)).getEpochSecond();
+                        try {
+                            while (rs.next()) {
+                                // get the first notify statement after wait statement.
+                                String timeInstant = rs.getString("time_instant");
+                                long notifyTimeStamp= (Instant.parse(timeInstant)).getEpochSecond();
+                                if (waitTimeStamp <= notifyTimeStamp) {
+                                    ctId = rs.getInt("id");
+                                    break;
+                                }
+                            }
+                            // get cell id / element id corresponding to call trace id for notify
+                            ResultSet elementRS = ElementDAOImpl.selectWhere("id_enter_call_trace = " + ctId);
+                            float xCoordinate = 0, yCoordinate = 0;
+                            try {
+                                if (elementRS.next()) {
+                                    int id = elementRS.getInt("id");
+                                    xCoordinate = elementRS.getFloat("bound_box_x_coordinate");
+                                    yCoordinate = elementRS.getFloat("bound_box_y_coordinate");
+                                    System.out.println(" notify : circle id: " + id);
+                                }
+                            } catch (SQLException e) { e.printStackTrace();
+                            }
+
+                            double width = graph.getScrollPane().getContent().getBoundsInLocal().getWidth();
+                            double height = graph.getScrollPane().getContent().getBoundsInLocal().getHeight();
+                            graph.getScrollPane().setVvalue(yCoordinate / height);
+                            graph.getScrollPane().setHvalue(xCoordinate / width);
+
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                        // get corresponding notify or notifyall. enter/exits
+                        // check call trace table for
+                        //      matching objectId  and
+                        //      closest time stamp after current time stamp for message = notify or notifyall
+                        // if not such row exists, then thread is in wait forever.
+
+                    } else if (eventType.equalsIgnoreCase("NOTIFY-ENTER")) {
+                        // get corresponding wait exits
+                        // check call trace table for
+                        //      matching object id
+                        //      closest time stamp after current timestamp
+                        //      message = wait exit.
+
+                        long notifyTimeStamp = (Instant.parse(timeStamp)).getEpochSecond();
+                        ResultSet rs = CallTraceDAOImpl.selectWhere("lockobjid = '" + lockObjectId + "'"+
+                                " AND (message = 'WAIT-EXIT')");
+                        int ctId = -1;
+                        try {
+                            while (rs.next()) {
+                                // get the first notify statement after wait statement.
+                                // ToDo handle case where -> NOTIFIED AFTER WAIT.
+                                String timeInstant = rs.getString("time_instant");
+                                long waitExitTimeStamp= (Instant.parse(timeInstant)).getEpochSecond();
+                                if (waitExitTimeStamp <= notifyTimeStamp) {
+                                    ctId = rs.getInt("id");
+                                    break;
+                                }
+                            }
+                            // get cell id / element id corresponding to call trace id for notify
+                            ResultSet elementRS = ElementDAOImpl.selectWhere("id_enter_call_trace = " + ctId);
+                            try {
+                                if (elementRS.next()) {
+                                    int id = elementRS.getInt("id");
+                                    System.out.println(" notify : circle id: " + id);
+                                }
+                            } catch (SQLException e) { e.printStackTrace();
+                            }
+                            // graph.getScrollPane();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+
+                    } else if (eventType.equalsIgnoreCase("NOTIFYALL-ENTER")) {
+                        // get all corresponding waits exits
+                        // check call trace table for
+                        //      matching object id
+                        //      closest time stamp after current timestamp and
+                        //      message = wait exit and
+                        //      no other wait enter or notify enter/exit between notify enter and wait exit.
+                    }
+
+
+
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -127,8 +235,9 @@ public class MouseGestures {
     EventHandler<MouseEvent> onMouseExitToDismissPopover = new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
-            System.out.println("Exited");
-            popOver.hide();
+            System.out.println("SHould no be eher");
+            if (popOver != null)
+                popOver.hide();
         }
     };
 
@@ -159,6 +268,7 @@ public class MouseGestures {
                 // expand sub tree.
                 System.out.println("onMousePressedToCollapseTree: cell: " + cellId + " ; collapsed: " + collapsed);
             } else if (collapsed == 0) {
+                cell.setStyle("-fx-background-color: blue");
                 System.out.println("onMousePressedToCollapseTree: cell: " + cellId + " ; collapsed: " + collapsed);
                 ElementDAOImpl.updateWhere("collapsed", "2", "id = " + cellId);
 
@@ -189,6 +299,7 @@ public class MouseGestures {
                             }
                         });
             } else if (collapsed == 2) {
+                cell.setStyle("-fx-background-color: red");
                 // expand now.
                 System.out.println("onMousePressedToCollapseTree: cell: " + cellId + " ; collapsed: " + collapsed);
                 recursivelyAdd(cellId);

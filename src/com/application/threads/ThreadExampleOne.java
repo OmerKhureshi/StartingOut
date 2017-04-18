@@ -7,6 +7,7 @@ import java.io.File;
  */
 class ThreadExampleOne {
     public static void main(String [] args) {
+        System.out.println("Main Enter");
         ObjWrapper.setLogFileName(new File ("ObjectWrapperCallTrace.txt"));
 
         ThreadB b = new ThreadB();
@@ -14,12 +15,13 @@ class ThreadExampleOne {
         b.start();
         synchronized(b) {
             try {
-                System.out.println("Waiting for b to complete...");
+                // System.out.println("Waiting for b to complete...");
                 ObjWrapper.wait(b);  // Use instead of b.wait();
                 b.total *= 2;
             } catch (InterruptedException e) {}
         }
-        System.out.println("Total is: " + b.total);
+        // System.out.println("Total is: " + b.total);
+        System.out.println("Main Exit");
     }
 }
 
@@ -31,6 +33,7 @@ class ThreadB extends Thread {
     int total  = 0;
     boolean isNotified = false;
     public void run() {
+        System.out.println("run Enter");
         synchronized(this) {
             try {
                 sleep(1500);
@@ -42,5 +45,6 @@ class ThreadB extends Thread {
             }
             ObjWrapper.notify(this);  // Use instead of b.notify();
         }
+        System.out.println("run Exit");
     }
 }

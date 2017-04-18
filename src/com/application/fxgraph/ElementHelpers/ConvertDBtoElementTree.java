@@ -21,32 +21,52 @@ import java.util.*;
 import java.util.List;
 
 public class ConvertDBtoElementTree {
+    public static Element greatGrandParent = new Element(null, -2);
     private Map<Integer, Element> threadMapToRoot = new LinkedHashMap<>();
     public ArrayList<Element> rootsList;
     Element grandParent, parent, cur;
+    Map<Integer, Element> currentMap;
 
     public ConvertDBtoElementTree() {
         rootsList = new ArrayList<>();
+        currentMap = new HashMap<>();
     }
 
-    public static Element greatGrandParent = new Element(null, -2);
     public void StringToElementList(List<String> line, int fkCallTrace) {
         String msg = line.get(3);  // ToDo replace hardcoded indices with universal indices.
-        Integer threadId = Integer.valueOf(line.get(1));
+        Integer threadId = Integer.valueOf(line.get(2));
 
         switch (msg.toUpperCase()) {
+            case "WAIT-ENTER":
+            case "NOTIFY-ENTER":
+            case "NOTIFYALL-ENTER":
             case "ENTER":   // Todo Performance: Use int codes instead of String like "ENTER":
+                System.out.println(">> ENTER");
                 if (!threadMapToRoot.containsKey(threadId)) {
                     // new thread
+                    System.out.println(">> new thread root: ");
                     parent = null;
-                } else {
-                    parent = cur;
+                } else if (currentMap.containsKey(threadId)) {
+                    parent = currentMap.get(threadId);
+                    System.out.println(">> parent: " + parent.getElementId());
+                    // parent = cur;
                 }
                 cur = new Element(parent, fkCallTrace);
+                System.out.println(">> new current: " + cur.getElementId());
+                currentMap.put(threadId, cur);
                 break;
 
+            case "WAIT-EXIT":
+            case "NOTIFY-EXIT":
+            case "NOTIFYALL-EXIT":
             case "EXIT":
+                System.out.println(">> Exit");
+                cur = currentMap.get(threadId);
+                cur.setFkExitCallTrace(fkCallTrace);
                 cur = cur.getParent();
+                currentMap.put(threadId, cur);
+                System.out.println(">> new current: " + cur.getElementId());
+                // cur = cur.getParent();
                 break;
 
             default:
@@ -54,15 +74,20 @@ public class ConvertDBtoElementTree {
                 throw up;  // Yuck! Not having any of that :(
         }
 
-        if (parent == null && !msg.equalsIgnoreCase("EXIT")) {
+        if (parent == null &&
+                (!msg.equalsIgnoreCase("EXIT") ||
+                        !msg.equalsIgnoreCase("NOTIFY-EXIT") ||
+                        !msg.equalsIgnoreCase("NOTIFYALL-EXIT"))) {
             if (!threadMapToRoot.containsKey(threadId)) {
                 grandParent = new Element(greatGrandParent, -1);
                 grandParent.setChildren(new ArrayList<>(Arrays.asList(cur)));
                 cur.setParent(grandParent);
                 threadMapToRoot.put(threadId, grandParent);
+                System.out.println(">> new grandparent: " + grandParent.getElementId());
                 /*defaultInitialize(grandParent);
                 ElementDAOImpl.insert(grandParent);*/
             } else {
+                System.out.println(">> not new grandparent: " + grandParent.getElementId());
                 Element grandparent = threadMapToRoot.get(threadId);   // Get grandParent root for the current threadId
                 grandparent.setChildren(new ArrayList<>(Collections.singletonList(cur)));       // set the current element as the child of the grandParent element.
                 cur.setParent(grandparent);

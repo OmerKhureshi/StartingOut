@@ -36,6 +36,7 @@ public class CallTraceDAOImpl {
                         "method_id INTEGER, " +
                         "message VARCHAR(20), " +
                         "parameters VARCHAR(200), " +
+                        "lockObjId VARCHAR(50), " +
                         "time_instant VARCHAR(24)" +
                         ")";
 
@@ -49,19 +50,42 @@ public class CallTraceDAOImpl {
         //        System.out.println("ending createTable");
     }
 
-    public static int insert(List<String> vals)
+    public static int insert(List<String> val)
             throws SQLException, ClassNotFoundException, InstantiationException, IllegalAccessException{
 
-
-        //       394 | 0 | 1 | Enter|[2131427413]|2017-03-01 21:34:55.529
         int autoIncrementedId = -1;
-        int processID = Integer.parseInt(vals.get(0));
-        int threadID = Integer.parseInt(vals.get(1));
-        int methodID = Integer.parseInt(vals.get(2));
-        String eventType = vals.get(3);
-        String parameters = vals.get(4);
-        String timeStamp = vals.get(5);
+        // int processID = Integer.parseInt(val.get(0));
+        // int threadID = Integer.parseInt(val.get(1));
+        // int methodID = Integer.parseInt(val.get(2));
+        // String eventType = val.get(3);
+        // String parameters = val.get(4);
+        // String timeStamp = val.get(5);
 
+        // TimeStamp       | ProcessID | ThreadID |  EventType |LockObjectID
+        // utc time format | 40948     |    9     | Wait-Enter |3986916
+
+        // TimeStamp                | ProcessID | ThreadID | EventType | MethodID  | Arguments
+        // 2017-03-31T17:00:19.305Z | 40948     |    9     |   Enter   |     1     |    []
+        // TimeStamp                | ProcessID | ThreadID | EventType | MethodID
+        // 2017-03-31T17:00:19.305Z | 40948     |    9     |   Enter   |     1
+        String timeStamp = val.get(0);
+        int processID = Integer.parseInt(val.get(1));
+        int threadID = Integer.parseInt(val.get(2));
+        String eventType = val.get(3);
+        int methodID = 0;
+        String parameters = "";
+        String lockObjectId = "";
+
+        if (eventType.equalsIgnoreCase("ENTER")) {
+            methodID = Integer.parseInt(val.get(4));
+            parameters = val.get(5);
+        } else if (eventType.equalsIgnoreCase("EXIT")) {
+            methodID = Integer.parseInt(val.get(4));
+        } else if (eventType.equalsIgnoreCase("WAIT-ENTER") || eventType.equalsIgnoreCase("WAIT-EXIT") ||
+                eventType.equalsIgnoreCase("NOTIFY-ENTER") || eventType.equalsIgnoreCase("NOTIFY-EXIT") ||
+                eventType.equalsIgnoreCase("NOTIFYALL-ENTER") || eventType.equalsIgnoreCase("NOTIFYALL-EXIT")) {
+            lockObjectId = val.get(4);
+        }
         //        System.out.println("starting insert");
         //        System.out.println("CallTraceDAOImpl:insert: " + isTableCreated());
 
@@ -78,6 +102,7 @@ public class CallTraceDAOImpl {
                     "method_id, " +
                     "message, " +
                     "parameters, " +
+                    "lockObjId, " +
                     "time_instant" +
                     ")" +
                     " VALUES("+
@@ -86,6 +111,7 @@ public class CallTraceDAOImpl {
                     methodID   + ", " +
                     "'" + eventType  + "', " +
                     "'" + parameters + "', " +
+                    "'" + lockObjectId + "', " +
                     "'" + timeStamp  + "'" +
                     ")";
 
@@ -130,7 +156,7 @@ public class CallTraceDAOImpl {
             conn = DatabaseUtil.getConnection();
             ps = conn.createStatement();
             sql = "SELECT * FROM " + CALL_TRACE_TABLE + " WHERE " + where;
-            //                System.out.println(">>> we got " + sql);
+                           System.out.println(">>> we got " + sql);
             ResultSet resultSet = ps.executeQuery(sql);
             //                resultSet.next();
             //                System.out.println(resultSet.getInt("id"));

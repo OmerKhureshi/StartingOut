@@ -67,7 +67,10 @@ public class Graph {
         getCellLayer().getChildren().addAll(model.listEdgesOnUI);
 
         model.listCircleCellsOnUI.stream()
-                .forEach(circleCell -> mouseGestures.makeDraggable(circleCell));
+                .forEach(circleCell -> {
+                    mouseGestures.makeDraggable(circleCell);
+
+                });
 
         model.clearListCircleCellsOnUI();
         model.clearListEdgesOnUI();
