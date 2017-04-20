@@ -5,8 +5,9 @@ import java.util.List;
 
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 
-public class Cell extends Pane {
+public class Cell extends StackPane {
 
     String cellId;
 

@@ -286,7 +286,6 @@ public class DatabaseUtil {
             query = "SELECT * FROM " + table;
             rs = ps.executeQuery(query);
             int count = rs.getMetaData().getColumnCount();
-            System.out.println(">>>> column count: " + count);
             while(rs.next()){
                 StringBuilder sb = new StringBuilder();
                 for (int i = 1; i <=count ; i++) {

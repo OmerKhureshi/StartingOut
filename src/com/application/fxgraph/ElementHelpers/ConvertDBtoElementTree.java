@@ -41,18 +41,14 @@ public class ConvertDBtoElementTree {
             case "NOTIFY-ENTER":
             case "NOTIFYALL-ENTER":
             case "ENTER":   // Todo Performance: Use int codes instead of String like "ENTER":
-                System.out.println(">> ENTER");
                 if (!threadMapToRoot.containsKey(threadId)) {
                     // new thread
-                    System.out.println(">> new thread root: ");
                     parent = null;
                 } else if (currentMap.containsKey(threadId)) {
                     parent = currentMap.get(threadId);
-                    System.out.println(">> parent: " + parent.getElementId());
                     // parent = cur;
                 }
                 cur = new Element(parent, fkCallTrace);
-                System.out.println(">> new current: " + cur.getElementId());
                 currentMap.put(threadId, cur);
                 break;
 
@@ -60,12 +56,10 @@ public class ConvertDBtoElementTree {
             case "NOTIFY-EXIT":
             case "NOTIFYALL-EXIT":
             case "EXIT":
-                System.out.println(">> Exit");
                 cur = currentMap.get(threadId);
                 cur.setFkExitCallTrace(fkCallTrace);
                 cur = cur.getParent();
                 currentMap.put(threadId, cur);
-                System.out.println(">> new current: " + cur.getElementId());
                 // cur = cur.getParent();
                 break;
 
@@ -75,19 +69,18 @@ public class ConvertDBtoElementTree {
         }
 
         if (parent == null &&
-                (!msg.equalsIgnoreCase("EXIT") ||
-                        !msg.equalsIgnoreCase("NOTIFY-EXIT") ||
+                (!msg.equalsIgnoreCase("EXIT") &&
+                        !msg.equalsIgnoreCase("WAIT-EXIT") &&
+                        !msg.equalsIgnoreCase("NOTIFY-EXIT") &&
                         !msg.equalsIgnoreCase("NOTIFYALL-EXIT"))) {
             if (!threadMapToRoot.containsKey(threadId)) {
                 grandParent = new Element(greatGrandParent, -1);
                 grandParent.setChildren(new ArrayList<>(Arrays.asList(cur)));
                 cur.setParent(grandParent);
                 threadMapToRoot.put(threadId, grandParent);
-                System.out.println(">> new grandparent: " + grandParent.getElementId());
                 /*defaultInitialize(grandParent);
                 ElementDAOImpl.insert(grandParent);*/
             } else {
-                System.out.println(">> not new grandparent: " + grandParent.getElementId());
                 Element grandparent = threadMapToRoot.get(threadId);   // Get grandParent root for the current threadId
                 grandparent.setChildren(new ArrayList<>(Collections.singletonList(cur)));       // set the current element as the child of the grandParent element.
                 cur.setParent(grandparent);
@@ -146,6 +139,10 @@ public class ConvertDBtoElementTree {
         ElementToChildDAOImpl.insert(
                 root.getParent() == null? -1 : root.getParent().getElementId(),
                 root.getElementId());
+        // // Create and insert Edges.
+        // Edge edge = new Edge(root.getParent(), root);
+        // edge.setStartX();
+
         if (root.getChildren() != null)
             root.getChildren().stream().forEachOrdered(this::recursivelyInsertElementsIntoDB);
     }

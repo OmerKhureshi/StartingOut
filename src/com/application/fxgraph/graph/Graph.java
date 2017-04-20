@@ -69,7 +69,6 @@ public class Graph {
         model.listCircleCellsOnUI.stream()
                 .forEach(circleCell -> {
                     mouseGestures.makeDraggable(circleCell);
-
                 });
 
         model.clearListCircleCellsOnUI();

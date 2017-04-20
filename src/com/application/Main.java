@@ -193,8 +193,10 @@ public class Main extends Application {
 }
 
     public void onScrollingScrollPane() {
-        convertDBtoElementTree.getCirclesToLoadIntoViewPort(graph);
-        graph.myEndUpdate();
+        if (convertDBtoElementTree!= null && graph != null) {
+            convertDBtoElementTree.getCirclesToLoadIntoViewPort(graph);
+            graph.myEndUpdate();
+        }
     }
 
     private void addGraphComponents() {
@@ -239,26 +241,5 @@ public class Main extends Application {
 
     public static void main(String[] args){
         launch(args);
-        // new Main().dummy();
-    }
-
-    public void dummy() {
-        // Call_Trace Table
-        // CallTraceDAOImpl.dropTable();
-        // CallTraceDAOImpl.createTable();
-        // Method_Defn Table
-        // MethodDefnDAOImpl.dropTable();
-        try {
-            boolean res = DatabaseUtil.getConnection().getMetaData().getTables(null, null, TableNames.METHOD_DEFINITION_TABLE, null).next();
-            System.out.println(res);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        // MethodDefnDAOImpl.createTable();
-        System.out.println("DONE");
-        // // Element Table
-        // ElementDAOImpl.dropTable();
-        // // Element_To_Child Table
-        // ElementToChildDAOImpl.dropTable();
     }
 }

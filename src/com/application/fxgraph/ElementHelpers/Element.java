@@ -330,14 +330,17 @@ public class Element {
 
     public static void main(String[] args) {
 
-        java.time.Instant instant = Instant.now();
+        // java.time.Instant instant = Instant.now();
+        // System.out.println(instant);
+        // // java.sql.Timestamp timestamp = Timestamp.from(instant);
+
+        // // string -> instant
+        String str = "2017-04-18T00:00:00.111Z";
+        Instant instant = Instant.parse(str);
         System.out.println(instant);
-        java.sql.Timestamp timestamp = Timestamp.from(instant);
+
+        java.sql.Timestamp timestamp = new Timestamp(instant.toEpochMilli());
         System.out.println(timestamp);
-        // string -> instant
-        // String str = "2017-04-18T00:34:13.694Z";
-        // Instant instant = Instant.parse(str);
-        // System.out.println(instant.getEpochSecond());
 
     }
 }

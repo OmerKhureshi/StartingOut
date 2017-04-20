@@ -16,7 +16,6 @@ public class CheckFileIntegrity {
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
             while((line = br.readLine()) != null) {
-                System.out.println(">>> " + line);
                 String msg = line.split("\\|")[3];
                     switch (msg.toUpperCase()) {
                         case "WAIT-ENTER":

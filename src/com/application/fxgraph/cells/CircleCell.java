@@ -9,22 +9,24 @@ import javafx.scene.shape.Circle;
 
 public class CircleCell extends Cell {
 
+    Label label;
+
     public CircleCell(String id) {
         super( id);
-        double width = 10;
-        double height = 10;
 
-       // Polygon view = new Polygon( width / 2, 0, width, height, 0, height);
+       // Polygon circle = new Polygon( width / 2, 0, width, height, 0, height);
         Group group = new Group();
-        Circle view = new Circle(20);
-        Label label = new Label(id);
-        group.getChildren().addAll(view, label);
+        Circle circle = new Circle(20);
+        label = new Label();
+        group.getChildren().addAll(circle, label);
 
-        view.setStroke(Color.RED);
-        view.setFill(Color.RED);
-        setView( group);
+        circle.setStroke(Color.RED);
+        circle.setFill(Color.RED);
+        setView(group);
+        circle.setOnMousePressed(event -> {
+            // ((Circle)event.getSource()).setStyle("-fx-background-color: blue");
+        });
     }
-
     public CircleCell (String id, Element element) {
         this(id);
         this.relocate(
@@ -32,10 +34,18 @@ public class CircleCell extends Cell {
                 element.getBoundBox().yCoordinate
         );
     }
+
     public CircleCell (String id, float xCoordinate, float yCoordinate) {
         this(id);
-        this.relocate(xCoordinate, yCoordinate);
+        this.relocate(xCoordinate , yCoordinate);
+        // this.relocate((xCoordinate - getWidth()) * .5 , (yCoordinate - getHeight()) * .5);
     }
 
+    public String getLabel() {
+        return label.getText();
+    }
 
+    public void setLabel(String text) {
+        this.label.setText(text);
+    }
 }

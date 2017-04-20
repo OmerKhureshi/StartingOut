@@ -32,7 +32,13 @@ public class ZoomableScrollPane extends ScrollPane {
 
         hvalueProperty().addListener((observable, oldValue, newValue) -> main.onScrollingScrollPane());
         vvalueProperty().addListener((observable, oldValue, newValue) -> main.onScrollingScrollPane());
-        // viewportBoundsProperty().addListener((observable, oldValue, newValue) -> main.onScrollingScrollPane());
+
+        viewportBoundsProperty().addListener((observable, oldValue, newValue) -> {
+            if (main != null) {
+                // System.out.println("view port size changed.");
+                main.onScrollingScrollPane();
+            }
+        });
     }
 
     public void saveRef(Main m) {

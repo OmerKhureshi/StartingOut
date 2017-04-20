@@ -1,15 +1,23 @@
 package com.application.fxgraph.graph;
 
+import com.application.fxgraph.ElementHelpers.Element;
+import com.sun.org.apache.xpath.internal.SourceTree;
 import javafx.scene.Group;
 import javafx.scene.shape.Line;
 
 public class Edge extends Group {
-
     protected Cell source;
     protected Cell target;
 
-    private String edgeId;
+    private Element sourceElement;
+    private Element targetElement;
 
+    private double startX;
+    private double startY;
+    private double endX;
+    private double endY;
+
+    private String edgeId;
     Line line;
 
     public Edge(Cell source, Cell target) {
@@ -22,10 +30,14 @@ public class Edge extends Group {
 
         line = new Line();
 
-        line.setStartX(source.getLayoutX());
-        line.setStartY(source.getLayoutY());
-        line.setEndX(target.getLayoutX());
-        line.setEndY(target.getLayoutY());
+        // System.out.println("EDGE added");
+        // System.out.println("  " + source.getLayoutX () + " : " + source.getLayoutY ());
+        // System.out.println("  " + target.getLayoutX () + " : " + target.getLayoutY ());
+        // System.out.println("  " + source.getWidth   () + " : " + source.getHeight  ());
+        line.setStartX    (source.getLayoutX        () + source.getPrefWidth       () * .5 );
+        line.setStartY    (source.getLayoutY        () + source.getPrefHeight      () * .5 );
+        line.setEndX      (target.getLayoutX        () + source.getPrefWidth       () * .5 );
+        line.setEndY      (target.getLayoutY        () + source.getPrefHeight      () * .5 );
 
         // line.startXProperty().bind( source.layoutXProperty().add(source.getLayoutX()));
         // line.startYProperty().bind( source.layoutYProperty().add(source.getLayoutY()));
@@ -44,6 +56,10 @@ public class Edge extends Group {
 
         getChildren().add( line);
 
+        startX = source.getLayoutX();
+        startY = source.getLayoutY();
+        endX = target.getLayoutX();
+        endY = target.getLayoutY();
     }
 
     public String getEdgeId() {
@@ -62,4 +78,51 @@ public class Edge extends Group {
         return target;
     }
 
+    public double getStartX() {
+        return startX;
+    }
+
+    public void setStartX(double startX) {
+        this.startX = startX;
+    }
+
+    public double getStartY() {
+        return startY;
+    }
+
+    public void setStartY(double startY) {
+        this.startY = startY;
+    }
+
+    public double getEndX() {
+        return endX;
+    }
+
+    public void setEndX(double endX) {
+        this.endX = endX;
+    }
+
+    public double getEndY() {
+        return endY;
+    }
+
+    public void setEndY(double endY) {
+        this.endY = endY;
+    }
+
+    public Element getSourceElement() {
+        return sourceElement;
+    }
+
+    public void setSourceElement(Element sourceElement) {
+        this.sourceElement = sourceElement;
+    }
+
+    public Element getTargetElement() {
+        return targetElement;
+    }
+
+    public void setTargetElement(Element targetElement) {
+        this.targetElement = targetElement;
+    }
 }

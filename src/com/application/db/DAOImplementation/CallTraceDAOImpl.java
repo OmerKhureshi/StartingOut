@@ -4,6 +4,7 @@ import com.application.db.DatabaseUtil;
 import com.application.db.TableNames;
 
 import java.sql.*;
+import java.time.Instant;
 import java.util.List;
 
 import static com.application.db.TableNames.CALL_TRACE_TABLE;
@@ -37,7 +38,8 @@ public class CallTraceDAOImpl {
                         "message VARCHAR(20), " +
                         "parameters VARCHAR(200), " +
                         "lockObjId VARCHAR(50), " +
-                        "time_instant VARCHAR(24)" +
+                        // "time_instant VARCHAR(24)" +
+                        "time_instant TIMESTAMP" +
                         ")";
 
                 ps.execute(sql);
@@ -59,7 +61,7 @@ public class CallTraceDAOImpl {
         // int methodID = Integer.parseInt(val.get(2));
         // String eventType = val.get(3);
         // String parameters = val.get(4);
-        // String timeStamp = val.get(5);
+        // String time_instant = val.get(5);
 
         // TimeStamp       | ProcessID | ThreadID |  EventType |LockObjectID
         // utc time format | 40948     |    9     | Wait-Enter |3986916
@@ -68,7 +70,10 @@ public class CallTraceDAOImpl {
         // 2017-03-31T17:00:19.305Z | 40948     |    9     |   Enter   |     1     |    []
         // TimeStamp                | ProcessID | ThreadID | EventType | MethodID
         // 2017-03-31T17:00:19.305Z | 40948     |    9     |   Enter   |     1
-        String timeStamp = val.get(0);
+        String time_instant = val.get(0);
+        Instant instant = Instant.parse(time_instant);
+        Timestamp timestamp = Timestamp.from(instant);
+        java.sql.Timestamp sqlTimeStamp = new Timestamp(instant.toEpochMilli());
         int processID = Integer.parseInt(val.get(1));
         int threadID = Integer.parseInt(val.get(2));
         String eventType = val.get(3);
@@ -112,7 +117,8 @@ public class CallTraceDAOImpl {
                     "'" + eventType  + "', " +
                     "'" + parameters + "', " +
                     "'" + lockObjectId + "', " +
-                    "'" + timeStamp  + "'" +
+                    // "'" + time_instant  + "'" +
+                    "{ts '" + timestamp + "'}" +
                     ")";
 
             //            System.out.println("Inserting into call trace the statement: " + sql);
@@ -152,19 +158,21 @@ public class CallTraceDAOImpl {
     static Statement ps;
     static String sql;
     public static ResultSet selectWhere(String where) {
-        if (isTableCreated()) try {
-            conn = DatabaseUtil.getConnection();
-            ps = conn.createStatement();
-            sql = "SELECT * FROM " + CALL_TRACE_TABLE + " WHERE " + where;
-                           System.out.println(">>> we got " + sql);
-            ResultSet resultSet = ps.executeQuery(sql);
-            //                resultSet.next();
-            //                System.out.println(resultSet.getInt("id"));
-            return resultSet;
-        } catch (SQLException e) {
-            System.out.println("Line that threw error: " + sql);
-            e.printStackTrace();
-        }
+            if (isTableCreated()) try {
+                conn = DatabaseUtil.getConnection();
+                ps = conn.createStatement();
+                sql = "SELECT * FROM " + CALL_TRACE_TABLE + " WHERE " + where;
+                               // System.out.println(">>> we got " + sql);
+                ResultSet resultSet = ps.executeQuery(sql);
+                //                resultSet.next();
+                //                System.out.println(resultSet.getInt("id"));
+                return resultSet;
+            } catch (SQLException e) {
+                System.out.println("Line that threw error: " + sql);
+                e.printStackTrace();
+            }
         throw new IllegalStateException("Table does not exist. Hence cannot fetch any rows from it.");
     }
+
+
 }
