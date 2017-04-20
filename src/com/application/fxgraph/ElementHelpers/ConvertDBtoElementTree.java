@@ -1,6 +1,7 @@
 package com.application.fxgraph.ElementHelpers;
 
 import com.application.Main;
+import com.application.db.DAOImplementation.EdgeDAOImpl;
 import com.application.db.DAOImplementation.ElementDAOImpl;
 import com.application.db.DAOImplementation.ElementToChildDAOImpl;
 import com.application.fxgraph.cells.CircleCell;
@@ -9,16 +10,12 @@ import com.application.fxgraph.graph.Edge;
 import com.application.fxgraph.graph.Graph;
 import com.application.fxgraph.graph.Model;
 import javafx.geometry.BoundingBox;
-import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.List;
 
 public class ConvertDBtoElementTree {
     public static Element greatGrandParent = new Element(null, -2);
@@ -26,6 +23,8 @@ public class ConvertDBtoElementTree {
     public ArrayList<Element> rootsList;
     Element grandParent, parent, cur;
     Map<Integer, Element> currentMap;
+    Graph graph;
+    Model model;
 
     public ConvertDBtoElementTree() {
         rootsList = new ArrayList<>();
@@ -147,10 +146,25 @@ public class ConvertDBtoElementTree {
             root.getChildren().stream().forEachOrdered(this::recursivelyInsertElementsIntoDB);
     }
 
+    public void recursivelyInsertEdgeElementsIntoDB(Element root) {
+        if (root == null)
+            return;
+
+        if (root.getChildren() != null)
+            root.getChildren().stream().forEachOrdered(targetElement -> {
+                EdgeElement edgeElement = new EdgeElement(root, targetElement);
+                edgeElement.calculateEndPoints();
+                EdgeDAOImpl.insert(edgeElement);
+
+                recursivelyInsertEdgeElementsIntoDB(targetElement);
+            });
+    }
+
     public void getCirclesToLoadIntoViewPort(Graph graph) {
+        this.graph = graph;
         ScrollPane scrollPane = graph.getScrollPane();
         Model model = graph.getModel();
-
+        this.model = model;
         Map<String, CircleCell> mapCircleCellsOnUI = model.getMapCircleCellsOnUI();
         Map<String, Edge> mapEdgesOnUI = model.getMapEdgesOnUI();
         BoundingBox boundingBox = Graph.getViewPortDims(scrollPane);
@@ -195,20 +209,52 @@ public class ConvertDBtoElementTree {
                             model.addCell(parentCircleCell);
                         }
                     }
-                }  else {
-                    curCircleCell = mapCircleCellsOnUI.get(id);
-                    parentCircleCell = mapCircleCellsOnUI.get(parentId);
                 }
-
-                if (curCircleCell != null && !model.getMapEdgesOnUI().containsKey(curCircleCell.getCellId()) && parentCircleCell != null) {
-                    Edge curEdge = new Edge(parentCircleCell, curCircleCell);
-                    model.addEdge(curEdge);
-                }
+                // else {
+                //     curCircleCell = mapCircleCellsOnUI.get(id);
+                //     parentCircleCell = mapCircleCellsOnUI.get(parentId);
+                // }
+                // if (curCircleCell != null && !model.getMapEdgesOnUI().containsKey(curCircleCell.getCellId()) && parentCircleCell != null) {
+                //     Edge curEdge = new Edge(parentCircleCell, curCircleCell);
+                //     model.addEdge(curEdge);
+                // }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-       removeFromUI(graph);
+
+        String commonWhereClausForEdges = "end_x >= " + viewPortMinX + " AND start_x <= " + viewPortMaxX ;
+
+        String whereClauseForUpwardEdges = " AND end_Y >= " + viewPortMinY + " AND start_y <= " + viewPortMaxY;
+
+        String whereClauseForDownwardEdges = " AND start_y >= " + viewPortMinY + " AND end_Y <= " + viewPortMaxY;
+
+        ResultSet rsUpEdges = EdgeDAOImpl.selectWhere(commonWhereClausForEdges + whereClauseForUpwardEdges);
+
+        ResultSet rsDownEdges = EdgeDAOImpl.selectWhere(commonWhereClausForEdges + whereClauseForDownwardEdges);
+
+        getEdgesFromResultSet(rsUpEdges);
+        getEdgesFromResultSet(rsDownEdges);
+
+        removeFromUI(graph);
+
+    }
+
+    public void getEdgesFromResultSet(ResultSet rs) {
+        Edge curEdge;
+        try {
+            while (rs.next()) {
+                String targetEdgeId = String.valueOf(rs.getInt("fk_target_element_id"));
+                double startX = rs.getFloat("start_x");
+                double endX = rs.getFloat("end_x");
+                double startY = rs.getFloat("start_y");
+                double endY = rs.getFloat("end_y");
+                curEdge = new Edge(targetEdgeId, startX, endX, startY, endY);
+                model.addEdge(curEdge);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     Object lock = Main.getLock();
@@ -223,7 +269,8 @@ public class ConvertDBtoElementTree {
         List<String> removeEdges = new ArrayList<>();
         List<CircleCell> listCircleCellsOnUI = model.getListCircleCellsOnUI();
         Map<String, Edge> mapEdgesOnUI = model.getMapEdgesOnUI();
-        List<Edge> listEdgesOnUI = model.getListEdgesOnUI();
+        // List<Edge> listEdgesOnUI = model.getListEdgesOnUI();
+        Set<Edge> listEdgesOnUI = model.getListEdgesOnUI();
 
         BoundingBox curViewPort = Graph.getViewPortDims(scrollPane);
         double minX = curViewPort.getMinX();
@@ -244,6 +291,7 @@ public class ConvertDBtoElementTree {
 
             removeCircleCells.stream()
                     .forEach(cellId -> {
+                        System.out.println(">>>>> removing circle");
                         CircleCell circleCell = mapCircleCellsOnUI.get(cellId);
                         cellLayer.getChildren().remove(circleCell);
                         mapCircleCellsOnUI.remove(cellId);
@@ -271,9 +319,15 @@ public class ConvertDBtoElementTree {
             removeEdges.stream()
                     .forEach(edgeId -> {
                         Edge edge = mapEdgesOnUI.get(edgeId);
+                        // System.out.println(">>>>> removing edges: " + edgeId + " : " + edge);
                         cellLayer.getChildren().remove(edge);
                         mapEdgesOnUI.remove(edgeId);
+                        // System.out.println(">>>>> before removing: " + edgeId);
+                        // listEdgesOnUI.stream().forEach(s -> System.out.println(" : " + s.getEdgeId() + " : " + s));
                         listEdgesOnUI.remove(edge);
+                        // System.out.println(">>>>> after removing: " + edgeId);
+                        // listEdgesOnUI.stream().forEach(s -> System.out.println(" : " + s.getEdgeId() + " : " + s));
+                        System.out.println();
                     });
         }
     }

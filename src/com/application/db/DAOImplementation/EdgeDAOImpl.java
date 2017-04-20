@@ -1,7 +1,7 @@
 package com.application.db.DAOImplementation;
 
 import com.application.db.DatabaseUtil;
-import com.application.fxgraph.graph.Edge;
+import com.application.fxgraph.ElementHelpers.EdgeElement;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -31,8 +31,8 @@ public class EdgeDAOImpl {
             try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
                 String sql = "CREATE TABLE " + EDGE_TABLE + " (" +
                         "id INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
-                        "fk_head_element_id INTEGER, " +
-                        "fk_tail_element_id INTEGER, " +
+                        "fk_source_element_id INTEGER, " +
+                        "fk_target_element_id INTEGER, " +
                         "start_x FLOAT, " +
                         "start_y FLOAT, " +
                         "end_x FLOAT, " +
@@ -46,12 +46,20 @@ public class EdgeDAOImpl {
         }
     }
 
-    public static void insert(Edge edge) {
+    public static void insert(EdgeElement edge) {
         if (!isTableCreated())
             createTable();
+
         String sql = null;
         try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
-            sql = "INSERT INTO " + EDGE_TABLE + " VALUES (" +
+            sql = "INSERT INTO " + EDGE_TABLE + " (" +
+                    "fk_source_element_id, " +
+                    "fk_target_element_id, " +
+                    "start_x, " +
+                    "start_y, " +
+                    "end_x, " +
+                    "end_y) " +
+                    " VALUES (" +
                     edge.getSourceElement().getElementId() + ", " +
                     edge.getTargetElement().getElementId() + ", " +
                     edge.getStartX() + ", " +
@@ -61,12 +69,10 @@ public class EdgeDAOImpl {
                     ")";
 
             ps.execute(sql);
-            //            System.out.println(TableNames.EDGE_TABLE + ": Inserted: " + sql);
         } catch (SQLException e) {
             System.out.println(" Exception caused by: " + sql);
             e.printStackTrace();
         }
-        //        System.out.println("ending insert");
     }
 
     public static void dropTable() {
@@ -95,6 +101,7 @@ public class EdgeDAOImpl {
                 sql = "SELECT * FROM " + EDGE_TABLE + " WHERE " + where;
                 //                System.out.println(">>> we got " + sql);
                 ResultSet resultSet = ps.executeQuery(sql);
+                System.out.println("Where: " + sql);
                 //                resultSet.next();
                 //                System.out.println(resultSet.getInt("id"));
                 return resultSet;

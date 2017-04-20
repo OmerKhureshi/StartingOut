@@ -28,6 +28,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.application.db.TableNames.CALL_TRACE_TABLE;
 
@@ -295,13 +296,15 @@ public class MouseGestures {
              * collapsed - actions
              *     0     - Show cell on UI. Starting value for all cells.
              *     1     - parent of this cell was minimized. Don't show on UI
-             *     2     - this cell was minimized. Show on UI.
-             *     3     - parent of this cell was minimized. this cell was minimized. Don't expand this cell's children. Don't show on UI.
+             *     2     - this cell was minimized. Show on UI. Don't show children on UI.
+             *     3     - parent of this cell was minimized. This cell was also minimized. Don't expand this cell's children. Don't show on UI.
              */
                 if (collapsed == 1) {
                     // expand sub tree.
                     // System.out.println("onMousePressedToCollapseTree: cell: " + cellId + " ; collapsed: " + collapsed);
                 } else if (collapsed == 0) {
+                    // Minimize now.
+
                     ((Circle) ( (Group)cell.getView() ).getChildren().get(0)).setFill(Color.BLUE);
                     // cell.getChildren().get(0).setStyle("-fx-background-color: blue");
                     // cell.setStyle("-fx-background-color: blue");
@@ -313,7 +316,8 @@ public class MouseGestures {
                     List<String> removeCircleCells = new ArrayList<>();
 
                     Map<String, Edge> mapEdgesOnUI = graph.getModel().getMapEdgesOnUI();
-                    List<Edge> listEdgesOnUI = graph.getModel().getListEdgesOnUI();
+                    // List<Edge> listEdgesOnUI = graph.getModel().getListEdgesOnUI();
+                    Set<Edge> listEdgesOnUI = graph.getModel().getListEdgesOnUI();
                     List<String> removeEdges = new ArrayList<>();
 
                     recursivelyRemove(cellId, removeCircleCells, removeEdges);

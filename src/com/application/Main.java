@@ -1,9 +1,6 @@
 package com.application;
 
-import com.application.db.DAOImplementation.CallTraceDAOImpl;
-import com.application.db.DAOImplementation.ElementDAOImpl;
-import com.application.db.DAOImplementation.ElementToChildDAOImpl;
-import com.application.db.DAOImplementation.MethodDefnDAOImpl;
+import com.application.db.DAOImplementation.*;
 import com.application.db.DatabaseUtil;
 import com.application.db.TableNames;
 import com.application.fxgraph.ElementHelpers.ConvertDBtoElementTree;
@@ -95,6 +92,9 @@ public class Main extends Application {
         // Element_To_Child Table
         ElementToChildDAOImpl.dropTable();
 
+        // Edge_Element Table
+        EdgeDAOImpl.dropTable();
+        
         new ParseCallTrace().readFile(MethodDefinitionLogFile.getFile(), MethodDefnDAOImpl::insert);
 
         convertDBtoElementTree = new ConvertDBtoElementTree();
@@ -116,6 +116,7 @@ public class Main extends Application {
         //         .map(Map.Entry::getValue)
         //         .forEachOrdered(convertDBtoElementTree::recursivelyUpdateColumn);
         convertDBtoElementTree.recursivelyInsertElementsIntoDB(ConvertDBtoElementTree.greatGrandParent);
+        convertDBtoElementTree.recursivelyInsertEdgeElementsIntoDB(convertDBtoElementTree.greatGrandParent);
         onScrollingScrollPane();
     }
 
@@ -170,27 +171,27 @@ public class Main extends Application {
     }
 
     public Map<Integer, CircleCell> nextRound(Map<Integer, CircleCell> cellList, int levelCount) {
-    Map resMap = new HashMap<Integer, CircleCell>();
-    // draws circles on UI for passed level count.
-    try {
-        ResultSet rs = ElementDAOImpl.selectWhere("level_count = " + levelCount);
-        while (rs.next()) {
-            int cellId = rs.getInt("id");
-            float cellXCoordinate = rs.getFloat("bound_box_x_coordinate");
-            float cellYCoordinate = rs.getFloat("bound_box_y_coordinate");
-            int parentId = rs.getInt("parent_id");
-            CircleCell targetCell = new CircleCell(String.valueOf(cellId), cellXCoordinate, cellYCoordinate);
-            resMap.put(cellId, targetCell);
-            model.addCell(targetCell);
-            CircleCell parentCell = cellList.get(parentId);
-            model.addEdge(parentCell, targetCell);
+        Map resMap = new HashMap<Integer, CircleCell>();
+        // draws circles on UI for passed level count.
+        try {
+            ResultSet rs = ElementDAOImpl.selectWhere("level_count = " + levelCount);
+            while (rs.next()) {
+                int cellId = rs.getInt("id");
+                float cellXCoordinate = rs.getFloat("bound_box_x_coordinate");
+                float cellYCoordinate = rs.getFloat("bound_box_y_coordinate");
+                int parentId = rs.getInt("parent_id");
+                CircleCell targetCell = new CircleCell(String.valueOf(cellId), cellXCoordinate, cellYCoordinate);
+                resMap.put(cellId, targetCell);
+                model.addCell(targetCell);
+                CircleCell parentCell = cellList.get(parentId);
+                model.addEdge(parentCell, targetCell);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
 
-    return resMap;
-}
+        return resMap;
+    }
 
     public void onScrollingScrollPane() {
         if (convertDBtoElementTree!= null && graph != null) {

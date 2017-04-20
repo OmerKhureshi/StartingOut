@@ -14,6 +14,9 @@ public class Cell extends StackPane {
     List<Cell> children = new ArrayList<>();
     List<Cell> parents = new ArrayList<>();
 
+    public static double prefWidth = 40;
+    public static double prefHeight = 40;
+
     Node view;
 
     public Cell(String cellId) {

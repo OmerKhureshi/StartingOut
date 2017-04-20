@@ -5,6 +5,6 @@ public class TableNames {
     public static final String CALL_TRACE_TABLE = "CALL_TRACE";
     public static final String ELEMENT_TABLE = "ELEMENT";
     public static final String ELEMENT_TO_CHILD_TABLE = "ELEMENT_TO_CHILD";
-    public static final String EDGE_TABLE = "EDGE";
+    public static final String EDGE_TABLE = "EDGE_ELEMENT";
 
 }
