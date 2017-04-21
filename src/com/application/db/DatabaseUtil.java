@@ -25,6 +25,16 @@ public class DatabaseUtil {
         return false;
     }
 
+    public void closeResultSet(ResultSet resultSet) {
+        try {
+            resultSet.close();
+        } catch (SQLException e) {
+            System.out.println("DatabaseUtil::close: error code: " + e.getErrorCode());
+        }
+    }
+
+
+
     private static Connection createDatabaseConnection() {
 
         String driver = "org.apache.derby.jdbc.EmbeddedDriver";
@@ -181,7 +191,7 @@ public class DatabaseUtil {
 //        String timeStamp = vals.get(5);
 
         if (!callTraceTableCreated) {
-            createCallTrace();
+            // createCallTrace();
         }
 
         try {
@@ -232,7 +242,7 @@ public class DatabaseUtil {
 
         if (!methodDefnTableCreated) {
             System.out.println(TableNames.METHOD_DEFINITION_TABLE + " table is not created.");
-            createMethodDefn();
+            // createMethodDefn();
         }
 
         try {

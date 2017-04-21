@@ -17,13 +17,13 @@ import javafx.application.Application;
 import javafx.geometry.BoundingBox;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import jdk.nashorn.internal.codegen.CompilerConstants;
 import sun.management.MethodInfo;
 
+import javax.xml.crypto.Data;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -33,36 +33,25 @@ public class Main extends Application {
     // Part of code from http://stackoverflow.com/a/30696075/3690248
     Graph graph;
     Model model;
+    BorderPane root;
+    Scene scene;
+    public Stage primaryStage;
+
     ConvertDBtoElementTree convertDBtoElementTree;
 
-    public static Object getLock() {
-        return lock;
-    }
-
+    // public static Object getLock() {
+    //     return lock;
+    // }
     static Object lock = new Object();
 
     @Override
     public void start(Stage primaryStage) {
-        BorderPane root = new BorderPane();
-
+        this.primaryStage = primaryStage;
         graph = new Graph();
+        root = new BorderPane();
+        EventHandlers.saveRef(this);
 
-        root.setCenter(graph.getScrollPane());
-        ((ZoomableScrollPane)graph.getScrollPane()).saveRef(this);
-
-        Scene scene = new Scene(root, 500, 300);
-        scene.getStylesheets().add(getClass().getResource("/application.css").toExternalForm());
-        primaryStage.setScene(scene);
-        primaryStage.show();
-
-        addGraphCellComponents();
-        Group statusBar = new Group();
-        statusBar.getChildren().add(new Label("this is status bar"));
-        root.setBottom(statusBar);
-
-        Group menuBar = new Group();
-        menuBar.getChildren().add(new Label("this is menu bar"));
-        root.setTop(menuBar);
+        reload(primaryStage);
 
         // Original.
         // addGraphComponents();
@@ -72,6 +61,41 @@ public class Main extends Application {
         System.out.println("Max memory: " + Runtime.getRuntime().maxMemory() / 1000000);
         System.out.println("Free memory: " + Runtime.getRuntime().freeMemory() / 1000000);
         System.out.println("Total memory: " + Runtime.getRuntime().totalMemory() / 1000000);
+
+        MenuBar mb = new MenuBar();
+        Menu file = new Menu("File");
+        MenuItem loadFile = new MenuItem("Load Call Trace File");
+        MenuItem demo = new MenuItem("Load Demo 1");
+
+        file.getItems().addAll(loadFile, demo);
+        mb.getMenus().add(file);
+
+        loadFile.setOnAction(new EventHandlers(graph).onMenuItemPressed);
+        demo.setOnAction(new EventHandlers(graph).onMenuItemPressed);
+
+        root.setTop(mb);
+
+        Group statusBar = new Group();
+        statusBar.getChildren().add(new Label("this is status bar"));
+        root.setBottom(statusBar);
+        scene = new Scene(root, 500, 300);
+        scene.getStylesheets().add(getClass().getResource("/application.css").toExternalForm());
+
+        primaryStage.setScene(scene);
+        primaryStage.show();
+
+    }
+
+    public void reload(Stage primaryStage) {
+
+        graph = new Graph();
+        root.setCenter(null);
+        root.setCenter(graph.getScrollPane());
+        ((ZoomableScrollPane) graph.getScrollPane()).saveRef(this);
+
+        addGraphCellComponents();
+
+        System.out.println(">>>>>>>>>>>> MapEdges size:  " + graph.getModel().getMapEdgesOnUI().size());
     }
 
     private void addGraphCellComponents() {
@@ -94,7 +118,7 @@ public class Main extends Application {
 
         // Edge_Element Table
         EdgeDAOImpl.dropTable();
-        
+
         new ParseCallTrace().readFile(MethodDefinitionLogFile.getFile(), MethodDefnDAOImpl::insert);
 
         convertDBtoElementTree = new ConvertDBtoElementTree();
@@ -118,6 +142,10 @@ public class Main extends Application {
         convertDBtoElementTree.recursivelyInsertElementsIntoDB(ConvertDBtoElementTree.greatGrandParent);
         convertDBtoElementTree.recursivelyInsertEdgeElementsIntoDB(convertDBtoElementTree.greatGrandParent);
         onScrollingScrollPane();
+    }
+
+    public void resetStaticFields() {
+
     }
 
     private void createCircleCellsRecursively(Element root, Model model) {

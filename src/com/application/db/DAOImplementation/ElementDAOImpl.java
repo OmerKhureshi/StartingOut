@@ -12,17 +12,18 @@ import java.sql.Statement;
 import static com.application.db.TableNames.ELEMENT_TABLE;
 
 public class ElementDAOImpl {
-    private static boolean isTableCreated = false;
+    // public static boolean isTableCreated = false;
 
     public static boolean isTableCreated() {
         //        System.out.println("starting isTableCreated");
-        if (!isTableCreated) {// No need to call DatabaseUtil method every time. Save time this way.
+        // if (!isTableCreated) {// No need to call DatabaseUtil method every time. Save time this way.
             //            System.out.println("ElementDAOImpl:isTableCreated: " + isTableCreated);
-            isTableCreated = DatabaseUtil.isTableCreated(ELEMENT_TABLE);
+            // isTableCreated = DatabaseUtil.isTableCreated(ELEMENT_TABLE);
             //            System.out.println("ElementDAOImpl:isTableCreated: " + isTableCreated);
-        }
+        // }
         //        System.out.println("ending isTableCreated");
-        return isTableCreated;
+        // return isTableCreated;
+        return DatabaseUtil.isTableCreated(ELEMENT_TABLE);
     }
 
     public static void createTable() {
@@ -51,7 +52,7 @@ public class ElementDAOImpl {
                         "collapsed INTEGER" +
                         ")";
                 ps.execute(sql);
-                //                System.out.println("Creating table " + TableNames.ELEMENT_TABLE);
+                System.out.println(">> Creating table " + TableNames.ELEMENT_TABLE);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -99,9 +100,9 @@ public class ElementDAOImpl {
         if (isTableCreated()) {
             try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
                 String sql= "Drop table " + TableNames.ELEMENT_TABLE;
-                //                System.out.println("ELEMENT_TABLE dropped");
+                System.out.println(">> Dropping table " + TableNames.ELEMENT_TABLE);
+
                 ps.execute(sql);
-                isTableCreated = false;
             } catch (SQLException e) {
                 e.printStackTrace();
             }

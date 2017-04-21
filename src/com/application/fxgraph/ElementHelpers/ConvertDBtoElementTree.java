@@ -1,6 +1,7 @@
 package com.application.fxgraph.ElementHelpers;
 
 import com.application.Main;
+import com.application.db.DAOImplementation.CallTraceDAOImpl;
 import com.application.db.DAOImplementation.EdgeDAOImpl;
 import com.application.db.DAOImplementation.ElementDAOImpl;
 import com.application.db.DAOImplementation.ElementToChildDAOImpl;
@@ -18,8 +19,8 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class ConvertDBtoElementTree {
-    public static Element greatGrandParent = new Element(null, -2);
-    private Map<Integer, Element> threadMapToRoot = new LinkedHashMap<>();
+    public static Element greatGrandParent;
+    private Map<Integer, Element> threadMapToRoot;
     public ArrayList<Element> rootsList;
     Element grandParent, parent, cur;
     Map<Integer, Element> currentMap;
@@ -27,8 +28,10 @@ public class ConvertDBtoElementTree {
     Model model;
 
     public ConvertDBtoElementTree() {
+        greatGrandParent = new Element(null, -2);
         rootsList = new ArrayList<>();
         currentMap = new HashMap<>();
+        threadMapToRoot = new LinkedHashMap<>();
     }
 
     public void StringToElementList(List<String> line, int fkCallTrace) {
@@ -177,17 +180,22 @@ public class ConvertDBtoElementTree {
                 " AND bound_box_x_coordinate < " + (viewPortMaxX) +
                 " AND bound_box_y_coordinate > " + (viewPortMinY + offset) +
                 " AND bound_box_y_coordinate < " + (viewPortMaxY - offset);
-        ResultSet rs = ElementDAOImpl.selectWhere(whereClause);
+
         CircleCell curCircleCell = null;
         CircleCell parentCircleCell = null;
 
-        try {
+        try (ResultSet rs = ElementDAOImpl.selectWhere(whereClause)) {
             while (rs.next()) {
                 String id = String.valueOf(rs.getInt("id"));
                 String parentId = String.valueOf(rs.getInt("parent_id"));
                 int collapsed = rs.getInt("collapsed");
                 float xCoordinate = rs.getFloat("bound_box_x_coordinate");
                 float yCoordinate = rs.getFloat("bound_box_y_coordinate");
+                int idEnterCallTrace = rs.getInt("id_enter_call_trace");
+                String eventType = "";
+                try  (ResultSet ctRS = CallTraceDAOImpl.selectWhere("id = " + idEnterCallTrace)) {
+                    if (ctRS.next()) eventType = ctRS.getString("message");
+                }
 
                 /*
                 * collapsed - actions
@@ -199,14 +207,30 @@ public class ConvertDBtoElementTree {
                 if (!mapCircleCellsOnUI.containsKey(id) && (collapsed == 0 || collapsed == 2)) {
                     curCircleCell = new CircleCell(id, xCoordinate, yCoordinate);
                     model.addCell(curCircleCell);
+                    String label = "";
+                    switch (eventType.toUpperCase()) {
+                        case "WAIT-ENTER":
+                            label = "WAIT";
+                            break;
+                        case "NOTIFY-ENTER":
+                            label = "NOTIFY";
+                            break;
+                        case "NOTIFYALL-ENTER":
+                            label = "NOTIFY\nALL";
+                            break;
+                    }
+
+                    curCircleCell.setLabel(label);
+
                     parentCircleCell = mapCircleCellsOnUI.get(parentId);
                     if (!mapCircleCellsOnUI.containsKey(parentId)) {
-                        ResultSet rsTemp = ElementDAOImpl.selectWhere("id = " + parentId);
-                        if (rsTemp.next()) {
-                            float xCoordinateTemp = rsTemp.getFloat("bound_box_x_coordinate");
-                            float yCoordinateTemp = rsTemp.getFloat("bound_box_y_coordinate");
-                            parentCircleCell = new CircleCell(parentId, xCoordinateTemp, yCoordinateTemp);
-                            model.addCell(parentCircleCell);
+                        try (ResultSet rsTemp = ElementDAOImpl.selectWhere("id = " + parentId)) {
+                            if (rsTemp.next()) {
+                                float xCoordinateTemp = rsTemp.getFloat("bound_box_x_coordinate");
+                                float yCoordinateTemp = rsTemp.getFloat("bound_box_y_coordinate");
+                                parentCircleCell = new CircleCell(parentId, xCoordinateTemp, yCoordinateTemp);
+                                model.addCell(parentCircleCell);
+                            }
                         }
                     }
                 }
@@ -224,20 +248,22 @@ public class ConvertDBtoElementTree {
         }
 
         String commonWhereClausForEdges = "end_x >= " + viewPortMinX + " AND start_x <= " + viewPortMaxX ;
-
         String whereClauseForUpwardEdges = " AND end_Y >= " + viewPortMinY + " AND start_y <= " + viewPortMaxY;
-
         String whereClauseForDownwardEdges = " AND start_y >= " + viewPortMinY + " AND end_Y <= " + viewPortMaxY;
 
-        ResultSet rsUpEdges = EdgeDAOImpl.selectWhere(commonWhereClausForEdges + whereClauseForUpwardEdges);
+        try (ResultSet rsUpEdges = EdgeDAOImpl.selectWhere(commonWhereClausForEdges + whereClauseForUpwardEdges)) {
+            getEdgesFromResultSet(rsUpEdges);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
-        ResultSet rsDownEdges = EdgeDAOImpl.selectWhere(commonWhereClausForEdges + whereClauseForDownwardEdges);
-
-        getEdgesFromResultSet(rsUpEdges);
-        getEdgesFromResultSet(rsDownEdges);
+        try (ResultSet rsDownEdges = EdgeDAOImpl.selectWhere(commonWhereClausForEdges + whereClauseForDownwardEdges)) {
+            getEdgesFromResultSet(rsDownEdges);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
         removeFromUI(graph);
-
     }
 
     public void getEdgesFromResultSet(ResultSet rs) {
@@ -257,7 +283,7 @@ public class ConvertDBtoElementTree {
         }
     }
 
-    Object lock = Main.getLock();
+    // Object lock = Main.getLock();
 
     public void removeFromUI(Graph graph) {
         CellLayer cellLayer = (CellLayer) graph.getCellLayer();
@@ -279,7 +305,7 @@ public class ConvertDBtoElementTree {
         int offset = 20;
         BoundingBox shrunkBB = new BoundingBox(minX + offset, minY + offset, curViewPort.getWidth() - (2 * offset), curViewPort.getHeight() - (2 * offset));
 
-        synchronized (lock) {
+        // synchronized (lock) {
             Iterator i = mapCircleCellsOnUI.entrySet().iterator();
             while (i.hasNext()) {
                 Map.Entry<String, CircleCell> entry = (Map.Entry) i.next();
@@ -291,7 +317,7 @@ public class ConvertDBtoElementTree {
 
             removeCircleCells.stream()
                     .forEach(cellId -> {
-                        System.out.println(">>>>> removing circle");
+                        // System.out.println(">>>>> removing circle");
                         CircleCell circleCell = mapCircleCellsOnUI.get(cellId);
                         cellLayer.getChildren().remove(circleCell);
                         mapCircleCellsOnUI.remove(cellId);
@@ -327,9 +353,9 @@ public class ConvertDBtoElementTree {
                         listEdgesOnUI.remove(edge);
                         // System.out.println(">>>>> after removing: " + edgeId);
                         // listEdgesOnUI.stream().forEach(s -> System.out.println(" : " + s.getEdgeId() + " : " + s));
-                        System.out.println();
+                        // System.out.println();
                     });
-        }
+        // }
     }
 }
 

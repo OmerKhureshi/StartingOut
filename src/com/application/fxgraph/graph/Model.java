@@ -42,12 +42,12 @@ public class Model {
     public void addCell(CircleCell circleCell) {
         // circleCell.toFront();
         // circleCell.setTranslateZ(10);
-        synchronized (Main.getLock()) {
+        // synchronized (Main.getLock()) {
             if (!mapCircleCellsOnUI.containsKey(circleCell.getCellId())) {
                 mapCircleCellsOnUI.put(circleCell.getCellId(), circleCell);
                 listCircleCellsOnUI.add(circleCell);
             }
-        }
+        // }
     }
 
     public void addEdge(Edge edge) {

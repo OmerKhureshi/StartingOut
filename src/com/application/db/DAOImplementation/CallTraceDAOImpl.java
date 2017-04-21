@@ -11,17 +11,18 @@ import static com.application.db.TableNames.CALL_TRACE_TABLE;
 
 public class CallTraceDAOImpl {
     // TODO: Create abstract classes for all these Impl classes. All common funtionality is implement by the default class. Rest of the methods are abstract.
-    private static boolean isTableCreated = false;
+    // public static boolean isTableCreated = false;
 
     public static boolean isTableCreated() {
         //        System.out.println("starting isTableCreated");
-        if (!isTableCreated) {// No need to call DatabaseUtil method every time. Save time this way.
+        // if (!isTableCreated) {// No need to call DatabaseUtil method every time. Save time this way.
+        //                System.out.println("CallTraceDAOImpl:isTableCreated: " + isTableCreated);
+            // isTableCreated = DatabaseUtil.isTableCreated(CALL_TRACE_TABLE);
             //            System.out.println("CallTraceDAOImpl:isTableCreated: " + isTableCreated);
-            isTableCreated = DatabaseUtil.isTableCreated(CALL_TRACE_TABLE);
-            //            System.out.println("CallTraceDAOImpl:isTableCreated: " + isTableCreated);
-        }
+        // }
         //        System.out.println("ending isTableCreated");
-        return isTableCreated;
+        // return isTableCreated;
+        return DatabaseUtil.isTableCreated(TableNames.CALL_TRACE_TABLE);
     }
 
     public static void createTable() {
@@ -29,7 +30,6 @@ public class CallTraceDAOImpl {
         //        System.out.println("CallTraceDAOImpl:createTable: " + isTableCreated());
         if (!isTableCreated()) {
             try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
-
                 sql = "CREATE TABLE " + CALL_TRACE_TABLE + " (" +
                         "id INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
                         "process_id INTEGER not null, " +
@@ -41,10 +41,8 @@ public class CallTraceDAOImpl {
                         // "time_instant VARCHAR(24)" +
                         "time_instant TIMESTAMP" +
                         ")";
-
                 ps.execute(sql);
-                isTableCreated = true;
-                //                System.out.println("Creating table " + TableNames.ELEMENT_TABLE);
+                System.out.println(">> Creating table " + TableNames.CALL_TRACE_TABLE);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -144,9 +142,8 @@ public class CallTraceDAOImpl {
         if (isTableCreated()) {
             try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
                 String sql= "Drop table " + TableNames.CALL_TRACE_TABLE;
-                  // System.out.println("ELEMENT_TABLE dropped");
                 ps.execute(sql);
-                isTableCreated = false;
+                System.out.println(">> Dropping table " + TableNames.CALL_TRACE_TABLE);
             } catch (SQLException e) {
                 e.printStackTrace();
             }

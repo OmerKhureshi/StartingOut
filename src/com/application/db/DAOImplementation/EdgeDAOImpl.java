@@ -1,6 +1,7 @@
 package com.application.db.DAOImplementation;
 
 import com.application.db.DatabaseUtil;
+import com.application.db.TableNames;
 import com.application.fxgraph.ElementHelpers.EdgeElement;
 
 import java.sql.Connection;
@@ -11,17 +12,18 @@ import java.sql.Statement;
 import static com.application.db.TableNames.EDGE_TABLE;
 
 public class EdgeDAOImpl {
-    private static boolean isTableCreated = false;
+    // public static boolean isTableCreated = false;
 
     public static boolean isTableCreated() {
         //        System.out.println("starting isTableCreated");
-        if (!isTableCreated) {// No need to call DatabaseUtil method every time. Save time this way.
+        // if (!isTableCreated) {// No need to call DatabaseUtil method every time. Save time this way.
             //            System.out.println("ElementDAOImpl:isTableCreated: " + isTableCreated);
-            isTableCreated = DatabaseUtil.isTableCreated(EDGE_TABLE);
+            // isTableCreated = DatabaseUtil.isTableCreated(EDGE_TABLE);
             //            System.out.println("ElementDAOImpl:isTableCreated: " + isTableCreated);
-        }
+        // }
         //        System.out.println("ending isTableCreated");
-        return isTableCreated;
+        // return isTableCreated;
+        return DatabaseUtil.isTableCreated(TableNames.EDGE_TABLE);
     }
 
     public static void createTable() {
@@ -39,7 +41,7 @@ public class EdgeDAOImpl {
                         "end_y FLOAT" +
                         ")";
                 ps.execute(sql);
-                //                System.out.println("Creating table " + TableNames.EDGE_TABLE);
+                System.out.println(">> Creating table " + TableNames.EDGE_TABLE);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -80,9 +82,9 @@ public class EdgeDAOImpl {
         if (isTableCreated()) {
             try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
                 String sql= "Drop table " + EDGE_TABLE;
-                //                System.out.println("EDGE_TABLE dropped");
+                System.out.println(">> Dropping table " + TableNames.EDGE_TABLE);
+
                 ps.execute(sql);
-                isTableCreated = false;
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -101,7 +103,7 @@ public class EdgeDAOImpl {
                 sql = "SELECT * FROM " + EDGE_TABLE + " WHERE " + where;
                 //                System.out.println(">>> we got " + sql);
                 ResultSet resultSet = ps.executeQuery(sql);
-                System.out.println("Where: " + sql);
+                // System.out.println("Where: " + sql);
                 //                resultSet.next();
                 //                System.out.println(resultSet.getInt("id"));
                 return resultSet;
@@ -111,27 +113,5 @@ public class EdgeDAOImpl {
             }
         }
         throw new IllegalStateException("Table does not exist. Hence cannot fetch any rows from it.");
-    }
-
-    public static void updateWhere(String columnName, String columnValue, String where) {
-        if (isTableCreated()) {
-            try  {
-                conn = DatabaseUtil.getConnection();
-                ps = conn.createStatement();
-                sql = "UPDATE " + EDGE_TABLE +
-                        " SET " + columnName + " = " + columnValue +
-                        " WHERE " + where;
-                //                System.out.println(">>> we got " + sql);
-                ps.executeUpdate(sql);
-                return;
-                //                resultSet.next();
-                //                System.out.println(resultSet.getInt("id"));
-            } catch (SQLException e) {
-                System.out.println("Line that threw error: " + sql);
-                e.printStackTrace();
-            }
-        }
-        throw new IllegalStateException("Table does not exist. Hence cannot fetch any rows from it.");
-
     }
 }

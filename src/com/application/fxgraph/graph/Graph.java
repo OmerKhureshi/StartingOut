@@ -14,7 +14,7 @@ public class Graph {
     private Group canvas;
     private ZoomableScrollPane scrollPane;
     //    private ScrollPane scrollPane;
-    MouseGestures mouseGestures;
+    EventHandlers eventHandlers;
 
     /**
      * the pane wrapper is necessary or else the scrollpane would always align
@@ -28,7 +28,7 @@ public class Graph {
         canvas = new Group();
         cellLayer = new CellLayer();
         canvas.getChildren().add(cellLayer);
-        mouseGestures = new MouseGestures(this);
+        eventHandlers = new EventHandlers(this);
         scrollPane = new ZoomableScrollPane(canvas);
         // scrollPane = new ScrollPane(canvas);
         scrollPane.setFitToWidth(true);
@@ -68,7 +68,7 @@ public class Graph {
 
         model.listCircleCellsOnUI.stream()
                 .forEach(circleCell -> {
-                    mouseGestures.makeDraggable(circleCell);
+                    eventHandlers.makeDraggable(circleCell);
                 });
 
         model.clearListCircleCellsOnUI();
@@ -86,7 +86,7 @@ public class Graph {
 
         // enable dragging of cells
         for (Cell cell : model.getAddedCells()) {
-            mouseGestures.makeDraggable(cell);
+            eventHandlers.makeDraggable(cell);
         }
 
         // every cell must have a parent, if it doesn't, then the graphParent is

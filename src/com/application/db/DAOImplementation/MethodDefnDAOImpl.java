@@ -13,22 +13,22 @@ import static com.application.db.TableNames.METHOD_DEFINITION_TABLE;
 
 public class MethodDefnDAOImpl {
     // TODO: Create abstract classes for all these Impl classes. All common funtionality is implement by the default class. Rest of the methods are abstract.
-    private static boolean isTableCreated = false;
+    // public static boolean isTableCreated = false;
 
     public static boolean isTableCreated() {
         //        System.out.println("starting isTableCreated");
-        if (!isTableCreated) {// No need to call DatabaseUtil method every time. Save time this way.
+        // if (!isTableCreated) {// No need to call DatabaseUtil method every time. Save time this way.
             //            System.out.println("MethodDefnDAOImpl:isTableCreated: " + isTableCreated);
-            isTableCreated = DatabaseUtil.isTableCreated(METHOD_DEFINITION_TABLE);
+            // isTableCreated = DatabaseUtil.isTableCreated(METHOD_DEFINITION_TABLE);
+            return DatabaseUtil.isTableCreated(METHOD_DEFINITION_TABLE);
             //            System.out.println("MethodDefnDAOImpl:isTableCreated: " + isTableCreated);
-        }
+        // }
         //        System.out.println("ending isTableCreated");
-        return isTableCreated;
+        // return isTableCreated;
     }
 
     public static void createTable() {
         //        System.out.println("starting createTable");
-        System.out.println("MethodDefnDAOImpl:createTable: " + isTableCreated());
         if (!isTableCreated()) {
             try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
                 sql = "CREATE TABLE " + METHOD_DEFINITION_TABLE + " (" +
@@ -38,8 +38,7 @@ public class MethodDefnDAOImpl {
                         "parameter_types VARCHAR(200)" +
                         ")";
                 ps.execute(sql);
-                isTableCreated = true;
-                // System.out.println("Creating table " + TableNames.ELEMENT_TABLE);
+                System.out.println(">>  Creating table " + TableNames.METHOD_DEFINITION_TABLE);
             } catch (SQLException e) {
                 System.err.println("MethodDefnDAOImpl::createTable: SQL Exception on create table");
                 e.printStackTrace();
@@ -79,9 +78,9 @@ public class MethodDefnDAOImpl {
         if (isTableCreated()) {
             try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
                 String sql= "Drop table " + METHOD_DEFINITION_TABLE;
-                // System.out.println("Method_Defn_TABLE dropped");
+                System.out.println(">> Dropping table " + TableNames.METHOD_DEFINITION_TABLE);
+
                 ps.execute(sql);
-                isTableCreated = false;
             } catch (SQLException e) {
                 e.printStackTrace();
             }

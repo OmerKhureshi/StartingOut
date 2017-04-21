@@ -12,7 +12,7 @@ import static com.application.db.TableNames.ELEMENT_TABLE;
 import static com.application.db.TableNames.ELEMENT_TO_CHILD_TABLE;
 
 public class ElementToChildDAOImpl {
-    private static boolean isTableCreated = false;
+    // public static boolean isTableCreated = false;
 
     public static void createTable() {
         if (!isTableCreated()) {
@@ -22,8 +22,7 @@ public class ElementToChildDAOImpl {
                         "child_id INTEGER" +  // todo define foreign key
                         ")";
                 ps.execute(sql);
-                System.out.println("Creating table " + TableNames.ELEMENT_TO_CHILD_TABLE);
-
+                System.out.println(">> Creating table " + TableNames.ELEMENT_TO_CHILD_TABLE);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -31,13 +30,14 @@ public class ElementToChildDAOImpl {
     }
 
     public static boolean isTableCreated() {
-        if (!isTableCreated)  // No need to call DatabaseUtil method every time. Save time this way.
-            isTableCreated = DatabaseUtil.isTableCreated(ELEMENT_TO_CHILD_TABLE);
-        return isTableCreated;
+        // if (!isTableCreated)  // No need to call DatabaseUtil method every time. Save time this way.
+        //     isTableCreated = DatabaseUtil.isTableCreated(ELEMENT_TO_CHILD_TABLE);
+        // return isTableCreated;
+        return DatabaseUtil.isTableCreated(ELEMENT_TO_CHILD_TABLE);
     }
 
     public static void insert(int elementId, int childId) {
-        if (!isTableCreated)
+        if (!isTableCreated())
             createTable();
 
         try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
@@ -52,17 +52,12 @@ public class ElementToChildDAOImpl {
         }
     }
 
-    public static void main(String[] args) {
-        new ElementToChildDAOImpl().createTable();
-    }
-
     public static void dropTable() {
         if (isTableCreated()) {
             try (Connection c = DatabaseUtil.getConnection(); Statement ps = c.createStatement()) {
                 String sql= "Drop table " + TableNames.ELEMENT_TO_CHILD_TABLE;
-                System.out.println("ELEMENT_TO_CHILD_TABLE dropped");
+                System.out.println(">> Dropping table " + TableNames.ELEMENT_TO_CHILD_TABLE);
                 ps.execute(sql);
-                isTableCreated = false;
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -89,6 +84,15 @@ public class ElementToChildDAOImpl {
             }
         }
         throw new IllegalStateException("Table does not exist. Hence cannot fetch any rows from it.");
+    }
+
+    public static void close() {
+        try {
+            ps.close();
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 }

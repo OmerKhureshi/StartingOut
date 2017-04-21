@@ -2,8 +2,11 @@ package com.application.fxgraph.cells;
 
 import com.application.fxgraph.ElementHelpers.Element;
 import com.application.fxgraph.graph.Cell;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
@@ -13,20 +16,22 @@ public class CircleCell extends Cell {
 
     public CircleCell(String id) {
         super( id);
-
-       // Polygon circle = new Polygon( width / 2, 0, width, height, 0, height);
-        Group group = new Group();
+        // setStyle("-fx-background-color: yellow");
+       //  Group group = new Group();
         Circle circle = new Circle(20);
         label = new Label();
-        group.getChildren().addAll(circle, label);
 
+        // group.getChildren().addAll(circle, label);
         circle.setStroke(Color.RED);
         circle.setFill(Color.RED);
-        setView(group);
+        getChildren().setAll(circle, label);
+        label.setTranslateY(circle.getRadius() + 5);
+        // setView(group);
         circle.setOnMousePressed(event -> {
             // ((Circle)event.getSource()).setStyle("-fx-background-color: blue");
         });
     }
+
     public CircleCell (String id, Element element) {
         this(id);
         this.relocate(
