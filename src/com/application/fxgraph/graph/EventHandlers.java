@@ -44,7 +44,7 @@ public class EventHandlers {
         // node.addEventFilter(MouseEvent.ANY, onMouseHoverToShowInfoEventHandler);
         // node.addEventFilter(MouseEvent.ANY, event -> System.out.println(event));
 
-        node.setOnMousePressed(onMousePressedToCollapseTree);
+        // node.setOnMousePressed(onMousePressedToCollapseTree);
         // node.setOnMouseEntered(onMouseHoverToShowInfoEventHandler);
         // node.setOnMouseExited(onMouseExitToDismissPopover);
         // node.setOnMousePressed(onMousePressedEventHandler);
@@ -395,11 +395,16 @@ public class EventHandlers {
                         if (parentRS.next()) {
                             String parentId = String.valueOf(parentRS.getInt("parent_id"));
                             CircleCell parentCell = graph.getModel().getMapCircleCellsOnUI().get(parentId);
+
+                           /*
                             Edge edge = new Edge(parentCell, cell);
+
                             EdgeDAOImpl.updateWhere("collapsed", "0",
                                     "fk_target_element_id = " + cellId);
 
                             graph.getModel().addEdge(edge);
+
+                            */
                         }
                     }
                     graph.myEndUpdate();
@@ -433,10 +438,13 @@ public class EventHandlers {
                         if (parentRS.next()) {
                             String parentId = String.valueOf(parentRS.getInt("parent_id"));
                             CircleCell parentCell = graph.getModel().getMapCircleCellsOnUI().get(parentId);
+
+                            /*
                             Edge edge = new Edge(parentCell, cell);
                             EdgeDAOImpl.updateWhere("collapsed", "0",
                                     "fk_target_element_id = " + cellId);
                             graph.getModel().addEdge(edge);
+                            */
                         }
                     }
                     graph.myEndUpdate();

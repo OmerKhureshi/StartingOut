@@ -150,12 +150,6 @@ public class Main extends Application {
                 });
         convertDBtoElementTree.calculateElementProperties();
         Graph.drawPlaceHolderLines();
-        // Map<Integer, Element> threadMapToRoot = convertDBtoElementTree.getThreadMapToRoot();
-        model = graph.getModel();
-
-        // threadMapToRoot.entrySet().stream()
-        //         .map(Map.Entry::getValue)
-        //         .forEachOrdered(convertDBtoElementTree::recursivelyUpdateColumn);
         statusBarLabel.setText("Populating database.");
         convertDBtoElementTree.recursivelyInsertElementsIntoDB(ConvertDBtoElementTree.greatGrandParent);
         convertDBtoElementTree.recursivelyInsertEdgeElementsIntoDB(convertDBtoElementTree.greatGrandParent);
@@ -163,7 +157,7 @@ public class Main extends Application {
         statusBarLabel.setText("Ready.");
     }
 
-    public void resetStaticFields() {
+    public void releaseElements(){
 
     }
 

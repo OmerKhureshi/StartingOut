@@ -276,10 +276,11 @@ public class ConvertDBtoElementTree {
                 double endX = rs.getFloat("end_x");
                 double startY = rs.getFloat("start_y");
                 double endY = rs.getFloat("end_y");
+
+                /*
                 curEdge = new Edge(targetEdgeId, startX, endX, startY, endY);
-                // System.out.println(">> Adding edge: " + targetEdgeId);
-                // System.out.println(">>>> here you are: " + curEdge.getEdgeId());
                 model.addEdge(curEdge);
+                */
             }
         } catch (SQLException e) {
             e.printStackTrace();
