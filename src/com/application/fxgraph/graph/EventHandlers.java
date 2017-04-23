@@ -1,10 +1,7 @@
 package com.application.fxgraph.graph;
 
 import com.application.Main;
-import com.application.db.DAOImplementation.CallTraceDAOImpl;
-import com.application.db.DAOImplementation.ElementDAOImpl;
-import com.application.db.DAOImplementation.ElementToChildDAOImpl;
-import com.application.db.DAOImplementation.MethodDefnDAOImpl;
+import com.application.db.DAOImplementation.*;
 import com.application.db.DatabaseUtil;
 import com.application.db.TableNames;
 import com.application.fxgraph.cells.CircleCell;
@@ -48,8 +45,8 @@ public class EventHandlers {
         // node.addEventFilter(MouseEvent.ANY, event -> System.out.println(event));
 
         node.setOnMousePressed(onMousePressedToCollapseTree);
-        node.setOnMouseEntered(onMouseHoverToShowInfoEventHandler);
-        node.setOnMouseExited(onMouseExitToDismissPopover);
+        // node.setOnMouseEntered(onMouseHoverToShowInfoEventHandler);
+        // node.setOnMouseExited(onMouseExitToDismissPopover);
         // node.setOnMousePressed(onMousePressedEventHandler);
         // node.setOnMouseDragged(onMouseDraggedEventHandler);
         // node.setOnMouseReleased(onMouseReleasedEventHandler);
@@ -239,7 +236,7 @@ public class EventHandlers {
                                 Button button = new Button();
                                 button.setOnMouseClicked(event1 -> {
                                     System.out.println(" button clicked: element to goto is: " + id);
-                                    graph.getScrollPane().setVvalue(yCoordinate / height);
+                                    graph.getScrollPane().setVvalue((yCoordinate + 60 )/ height);
                                     graph.getScrollPane().setHvalue(xCoordinate / width);
                                 });
                                 buttonList.add(button);
@@ -325,20 +322,23 @@ public class EventHandlers {
                 // System.out.println("onMousePressedToCollapseTree: cell: " + cellId + " ; collapsed: " + collapsed);
             } else if (collapsed == 0) {
                 // Minimize now.
+                // System.out.println(">>>> clicked on a collapsed = 0  cell.");
+                if (cell != null)
+                    ((Circle)cell.getChildren().get(0)).setFill(Color.BLUE);
 
-                ((Circle) ( (Group)cell.getView() ).getChildren().get(0)).setFill(Color.BLUE);
+                // ((Circle) ( (Group)cell.getView() )
+                //             .getChildren().get(0))
+                //             .setFill(Color.BLUE);
                 // cell.getChildren().get(0).setStyle("-fx-background-color: blue");
                 // cell.setStyle("-fx-background-color: blue");
                 cell.setLabel("+");
                 ElementDAOImpl.updateWhere("collapsed", "2", "id = " + cellId);
-
                 Map<String, CircleCell> mapCircleCellsOnUI = graph.getModel().getMapCircleCellsOnUI();
                 List<CircleCell> listCircleCellsOnUI = graph.getModel().getListCircleCellsOnUI();
                 List<String> removeCircleCells = new ArrayList<>();
 
                 Map<String, Edge> mapEdgesOnUI = graph.getModel().getMapEdgesOnUI();
-                // List<Edge> listEdgesOnUI = graph.getModel().getListEdgesOnUI();
-                Set<Edge> listEdgesOnUI = graph.getModel().getListEdgesOnUI();
+                List<Edge> listEdgesOnUI = graph.getModel().getListEdgesOnUI();
                 List<String> removeEdges = new ArrayList<>();
 
                 recursivelyRemove(cellId, removeCircleCells, removeEdges);
@@ -350,6 +350,8 @@ public class EventHandlers {
                         listCircleCellsOnUI.remove(circleCell);
                     }
                 });
+                // listEdgesOnUI.forEach(edge -> System.out.print(" : " + edge));
+                // System.out.println();
 
                 removeEdges.forEach(edgeId -> {
                     if (mapEdgesOnUI.containsKey(edgeId)) {
@@ -359,9 +361,13 @@ public class EventHandlers {
                         listEdgesOnUI.remove(edge);
                     }
                 });
+                // listEdgesOnUI.forEach(edge -> System.out.print(" : " + edge));
+                // System.out.println();
+
             } else if (collapsed == 2) {
-                ( (Circle) ( (Group)cell.getView() ).getChildren().get(0) ).setFill(Color.RED);
-                // cell.setStyle("-fx-background-color: red");
+                if (cell != null)
+                    ((Circle)cell.getChildren().get(0)).setFill(Color.RED);
+                // ( (Circle) ( (Groupq)cell.getView() ).getChildren().get(0) ).setFill(Color.RED);
                 cell.setLabel("-");
                 recursivelyAdd(cellId);
             } else if (collapsed == 3) {
@@ -385,12 +391,14 @@ public class EventHandlers {
                     CircleCell cell = new CircleCell(cellId, xCoordinateTemp, yCoordinateTemp);
                     graph.getModel().addCell(cell);
 
-
                     try (ResultSet parentRS = ElementToChildDAOImpl.selectWhere("child_id = " + cellId)) {
                         if (parentRS.next()) {
                             String parentId = String.valueOf(parentRS.getInt("parent_id"));
                             CircleCell parentCell = graph.getModel().getMapCircleCellsOnUI().get(parentId);
                             Edge edge = new Edge(parentCell, cell);
+                            EdgeDAOImpl.updateWhere("collapsed", "0",
+                                    "fk_target_element_id = " + cellId);
+
                             graph.getModel().addEdge(edge);
                         }
                     }
@@ -420,6 +428,17 @@ public class EventHandlers {
                     float yCoordinateTemp = elementRS.getFloat("bound_box_y_coordinate");
                     CircleCell cell = new CircleCell(cellId, xCoordinateTemp, yCoordinateTemp);
                     graph.getModel().addCell(cell);
+
+                    try (ResultSet parentRS = ElementToChildDAOImpl.selectWhere("child_id = " + cellId)) {
+                        if (parentRS.next()) {
+                            String parentId = String.valueOf(parentRS.getInt("parent_id"));
+                            CircleCell parentCell = graph.getModel().getMapCircleCellsOnUI().get(parentId);
+                            Edge edge = new Edge(parentCell, cell);
+                            EdgeDAOImpl.updateWhere("collapsed", "0",
+                                    "fk_target_element_id = " + cellId);
+                            graph.getModel().addEdge(edge);
+                        }
+                    }
                     graph.myEndUpdate();
                 }
             }
@@ -435,10 +454,15 @@ public class EventHandlers {
                     String childId = String.valueOf(childrenRS.getInt("child_id"));
                     removeCircleCells.add(childId);
                     removeEdges.add(childId);
+
                     ElementDAOImpl.updateWhere("collapsed", "1",
                             "id = " + childId + " AND collapsed = 0");
                     ElementDAOImpl.updateWhere("collapsed", "3",
                             "id = " + childId + " AND collapsed = 2");
+
+                    EdgeDAOImpl.updateWhere("collapsed", "1",
+                            "fk_target_element_id = " + childId);
+
                     recursivelyRemove(childId, removeCircleCells, removeEdges);
                 }
             } catch (SQLException e) {
@@ -478,27 +502,6 @@ public class EventHandlers {
         double x;
         double y;
     }
-
-    public EventHandler<ActionEvent> onMenuItemPressed = new EventHandler<ActionEvent>() {
-        @Override
-        public void handle(ActionEvent event) {
-            String menuText = ((MenuItem) event.getTarget()).getText();
-
-            if (menuText.equals("Load Call Trace File")) {
-                System.out.println("Clicked load call trace file");
-
-            } else if (menuText.equals("Load Demo 1")) {
-                System.out.println("Clicked Load Demo ");
-                CallTraceLogFile.setFileName("L-Instrumentation_call_trace_1_wait.txt");
-                main.reload(main.primaryStage);
-
-            } else if (menuText.equals("Load Demo 2")) {
-
-            } else if (menuText.equals("Load Demo 3")) {
-
-            }
-        }
-    };
 
     public static void saveRef(Main m) {
         main = m;

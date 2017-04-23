@@ -19,17 +19,15 @@ public class CircleCell extends Cell {
         // setStyle("-fx-background-color: yellow");
        //  Group group = new Group();
         Circle circle = new Circle(20);
-        label = new Label();
+        label = new Label(id);
 
         // group.getChildren().addAll(circle, label);
         circle.setStroke(Color.RED);
         circle.setFill(Color.RED);
+        label.setTranslateY(circle.getRadius() + 15);
+
         getChildren().setAll(circle, label);
-        label.setTranslateY(circle.getRadius() + 5);
         // setView(group);
-        circle.setOnMousePressed(event -> {
-            // ((Circle)event.getSource()).setStyle("-fx-background-color: blue");
-        });
     }
 
     public CircleCell (String id, Element element) {
@@ -51,6 +49,6 @@ public class CircleCell extends Cell {
     }
 
     public void setLabel(String text) {
-        this.label.setText(text);
+    //     this.label.setText(text);
     }
 }

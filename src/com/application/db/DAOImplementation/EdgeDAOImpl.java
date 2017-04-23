@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import static com.application.db.TableNames.EDGE_TABLE;
+import static com.application.db.TableNames.ELEMENT_TABLE;
 
 public class EdgeDAOImpl {
     // public static boolean isTableCreated = false;
@@ -38,7 +39,8 @@ public class EdgeDAOImpl {
                         "start_x FLOAT, " +
                         "start_y FLOAT, " +
                         "end_x FLOAT, " +
-                        "end_y FLOAT" +
+                        "end_y FLOAT, " +
+                        "collapsed INTEGER" +
                         ")";
                 ps.execute(sql);
                 System.out.println(">> Creating table " + TableNames.EDGE_TABLE);
@@ -60,14 +62,16 @@ public class EdgeDAOImpl {
                     "start_x, " +
                     "start_y, " +
                     "end_x, " +
-                    "end_y) " +
+                    "end_y, " +
+                    "collapsed) " +
                     " VALUES (" +
                     edge.getSourceElement().getElementId() + ", " +
                     edge.getTargetElement().getElementId() + ", " +
                     edge.getStartX() + ", " +
                     edge.getStartY() + ", " +
                     edge.getEndX() + ", " +
-                    edge.getEndY() + "" +
+                    edge.getEndY() + ", " +
+                    edge.getCollpased() + "" +
                     ")";
 
             ps.execute(sql);
@@ -112,6 +116,28 @@ public class EdgeDAOImpl {
                 e.printStackTrace();
             }
         }
+        throw new IllegalStateException("No results for the select query. " + sql);
+    }
+
+    public static void updateWhere(String columnName, String columnValue, String where) {
+        if (isTableCreated()) {
+            try  {
+                conn = DatabaseUtil.getConnection();
+                ps = conn.createStatement();
+                sql = "UPDATE " + TableNames.EDGE_TABLE +
+                        " SET " + columnName + " = " + columnValue +
+                        " WHERE " + where;
+                //                System.out.println(">>> we got " + sql);
+                ps.executeUpdate(sql);
+                return;
+                //                resultSet.next();
+                //                System.out.println(resultSet.getInt("id"));
+            } catch (SQLException e) {
+                System.out.println("Line that threw error: " + sql);
+                e.printStackTrace();
+            }
+        }
         throw new IllegalStateException("Table does not exist. Hence cannot fetch any rows from it.");
+
     }
 }

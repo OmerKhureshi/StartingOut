@@ -10,6 +10,7 @@ import com.application.fxgraph.graph.CellLayer;
 import com.application.fxgraph.graph.Edge;
 import com.application.fxgraph.graph.Graph;
 import com.application.fxgraph.graph.Model;
+import javafx.application.Platform;
 import javafx.geometry.BoundingBox;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.shape.Line;
@@ -247,7 +248,7 @@ public class ConvertDBtoElementTree {
             e.printStackTrace();
         }
 
-        String commonWhereClausForEdges = "end_x >= " + viewPortMinX + " AND start_x <= " + viewPortMaxX ;
+        String commonWhereClausForEdges = "collapsed = 0 AND " + "end_x >= " + viewPortMinX + " AND start_x <= " + viewPortMaxX ;
         String whereClauseForUpwardEdges = " AND end_Y >= " + viewPortMinY + " AND start_y <= " + viewPortMaxY;
         String whereClauseForDownwardEdges = " AND start_y >= " + viewPortMinY + " AND end_Y <= " + viewPortMaxY;
 
@@ -276,6 +277,8 @@ public class ConvertDBtoElementTree {
                 double startY = rs.getFloat("start_y");
                 double endY = rs.getFloat("end_y");
                 curEdge = new Edge(targetEdgeId, startX, endX, startY, endY);
+                // System.out.println(">> Adding edge: " + targetEdgeId);
+                // System.out.println(">>>> here you are: " + curEdge.getEdgeId());
                 model.addEdge(curEdge);
             }
         } catch (SQLException e) {
@@ -284,6 +287,8 @@ public class ConvertDBtoElementTree {
     }
 
     // Object lock = Main.getLock();
+    List<CircleCell> removedCircleCells = new ArrayList<>();
+    List<Edge> removedEdges = new ArrayList<>();
 
     public void removeFromUI(Graph graph) {
         CellLayer cellLayer = (CellLayer) graph.getCellLayer();
@@ -295,8 +300,7 @@ public class ConvertDBtoElementTree {
         List<String> removeEdges = new ArrayList<>();
         List<CircleCell> listCircleCellsOnUI = model.getListCircleCellsOnUI();
         Map<String, Edge> mapEdgesOnUI = model.getMapEdgesOnUI();
-        // List<Edge> listEdgesOnUI = model.getListEdgesOnUI();
-        Set<Edge> listEdgesOnUI = model.getListEdgesOnUI();
+        List<Edge> listEdgesOnUI = model.getListEdgesOnUI();
 
         BoundingBox curViewPort = Graph.getViewPortDims(scrollPane);
         double minX = curViewPort.getMinX();
@@ -317,9 +321,8 @@ public class ConvertDBtoElementTree {
 
             removeCircleCells.stream()
                     .forEach(cellId -> {
-                        // System.out.println(">>>>> removing circle");
                         CircleCell circleCell = mapCircleCellsOnUI.get(cellId);
-                        cellLayer.getChildren().remove(circleCell);
+                        Platform.runLater(() -> cellLayer.getChildren().remove(circleCell));
                         mapCircleCellsOnUI.remove(cellId);
                         listCircleCellsOnUI.remove(circleCell);
                     });
@@ -333,7 +336,7 @@ public class ConvertDBtoElementTree {
                         line.getStartX(),
                         Math.min(line.getStartY(), line.getEndY()),
                         Math.abs(line.getEndX() - line.getStartX()),
-                        Math.abs(line.getEndY() - line.getStartY()) );
+                        Math.abs(line.getEndY() - line.getStartY()));
                 // if (!shrunkBB.contains(line.getEndX(), line.getEndY())) {
                 //     removeEdges.add(edge.getEdgeId());
                 // }
@@ -345,17 +348,24 @@ public class ConvertDBtoElementTree {
             removeEdges.stream()
                     .forEach(edgeId -> {
                         Edge edge = mapEdgesOnUI.get(edgeId);
-                        // System.out.println(">>>>> removing edges: " + edgeId + " : " + edge);
-                        cellLayer.getChildren().remove(edge);
+                        Platform.runLater(() -> cellLayer.getChildren().remove(edge));
                         mapEdgesOnUI.remove(edgeId);
-                        // System.out.println(">>>>> before removing: " + edgeId);
-                        // listEdgesOnUI.stream().forEach(s -> System.out.println(" : " + s.getEdgeId() + " : " + s));
                         listEdgesOnUI.remove(edge);
-                        // System.out.println(">>>>> after removing: " + edgeId);
-                        // listEdgesOnUI.stream().forEach(s -> System.out.println(" : " + s.getEdgeId() + " : " + s));
-                        // System.out.println();
                     });
         // }
+
+        // removeFromCellLayer();
+    }
+
+
+    public void removeFromCellLayer() {
+        CellLayer cellLayer = (CellLayer) graph.getCellLayer();
+        removedCircleCells.stream().forEach(circleCell ->  {
+            Platform.runLater(() -> cellLayer.getChildren().remove(circleCell));
+        });
+        removedEdges.stream().forEach(edge ->  {
+            Platform.runLater(() -> cellLayer.getChildren().remove(edge));
+        });
     }
 }
 

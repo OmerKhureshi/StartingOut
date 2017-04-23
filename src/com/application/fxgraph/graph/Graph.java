@@ -2,6 +2,7 @@ package com.application.fxgraph.graph;
 
 import com.application.fxgraph.ElementHelpers.ConvertDBtoElementTree;
 import com.application.fxgraph.ElementHelpers.Element;
+import javafx.application.Platform;
 import javafx.geometry.BoundingBox;
 import javafx.scene.Group;
 import javafx.scene.control.ScrollPane;
@@ -63,8 +64,16 @@ public class Graph {
     }
 
     public void myEndUpdate() {
-        getCellLayer().getChildren().addAll(model.listCircleCellsOnUI);
-        getCellLayer().getChildren().addAll(model.listEdgesOnUI);
+        model.listCircleCellsOnUI.stream().forEach(circleCell -> {
+            if (circleCell !=null && !getCellLayer().getChildren().contains(circleCell))
+                Platform.runLater(() ->  getCellLayer().getChildren().add(circleCell));
+        });
+        model.listEdgesOnUI.stream().forEach(edge -> {
+            if (!getCellLayer().getChildren().contains(edge))
+                getCellLayer().getChildren().add(edge);
+        });
+        // getCellLayer().getChildren().addAll(model.listCircleCellsOnUI);
+        // getCellLayer().getChildren().addAll(model.listEdgesOnUI);
 
         model.listCircleCellsOnUI.stream()
                 .forEach(circleCell -> {

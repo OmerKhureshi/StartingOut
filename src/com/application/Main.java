@@ -14,6 +14,7 @@ import com.application.logs.fileHandler.MethodDefinitionLogFile;
 import com.application.logs.fileIntegrity.CheckFileIntegrity;
 import com.application.logs.parsers.ParseCallTrace;
 import javafx.application.Application;
+import javafx.beans.property.StringProperty;
 import javafx.geometry.BoundingBox;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -21,6 +22,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import jdk.nashorn.internal.codegen.CompilerConstants;
+import oracle.jrockit.jfr.StringConstantPool;
 import sun.management.MethodInfo;
 
 import javax.xml.crypto.Data;
@@ -36,6 +38,7 @@ public class Main extends Application {
     BorderPane root;
     Scene scene;
     public Stage primaryStage;
+    Label statusBarLabel = new Label();
 
     ConvertDBtoElementTree convertDBtoElementTree;
 
@@ -51,7 +54,7 @@ public class Main extends Application {
         root = new BorderPane();
         EventHandlers.saveRef(this);
 
-        reload(primaryStage);
+        reload();
 
         // Original.
         // addGraphComponents();
@@ -64,19 +67,31 @@ public class Main extends Application {
 
         MenuBar mb = new MenuBar();
         Menu file = new Menu("File");
-        MenuItem loadFile = new MenuItem("Load Call Trace File");
-        MenuItem demo = new MenuItem("Load Demo 1");
+        MenuItem demoOne = new MenuItem("Load Demo 1");
+        MenuItem demoTwo = new MenuItem("Load Demo 2");
 
-        file.getItems().addAll(loadFile, demo);
+        file.getItems().addAll(demoOne, demoTwo);
         mb.getMenus().add(file);
 
-        loadFile.setOnAction(new EventHandlers(graph).onMenuItemPressed);
-        demo.setOnAction(new EventHandlers(graph).onMenuItemPressed);
+        demoOne.setOnAction(event -> {
+            CallTraceLogFile.setFileName("L-Instrumentation_call_trace_works_basic_complexity_4.txt");
+            System.out.println("first demo");
+            reload();
+        });
+
+        demoTwo.setOnAction(event -> {
+            System.out.println("second demo");
+            CallTraceLogFile.setFileName("L-Instrumentation_call_trace_works_basic_complexity_4.txt");
+            // reload(primaryStage);
+            reload2();
+            reload();
+        });
 
         root.setTop(mb);
 
         Group statusBar = new Group();
-        statusBar.getChildren().add(new Label("this is status bar"));
+        statusBarLabel.setText("Done Loading into Database. Application ready.");
+        statusBar.getChildren().add(statusBarLabel);
         root.setBottom(statusBar);
         scene = new Scene(root, 500, 300);
         scene.getStylesheets().add(getClass().getResource("/application.css").toExternalForm());
@@ -86,16 +101,17 @@ public class Main extends Application {
 
     }
 
-    public void reload(Stage primaryStage) {
-
+    public void reload() {
         graph = new Graph();
         root.setCenter(null);
         root.setCenter(graph.getScrollPane());
         ((ZoomableScrollPane) graph.getScrollPane()).saveRef(this);
-
         addGraphCellComponents();
+    }
 
-        System.out.println(">>>>>>>>>>>> MapEdges size:  " + graph.getModel().getMapEdgesOnUI().size());
+    public void reload2(){
+        graph = new Graph();
+        root.setCenter(null);
     }
 
     private void addGraphCellComponents() {
@@ -118,6 +134,7 @@ public class Main extends Application {
 
         // Edge_Element Table
         EdgeDAOImpl.dropTable();
+        statusBarLabel.setText("Loading log file.");
 
         new ParseCallTrace().readFile(MethodDefinitionLogFile.getFile(), MethodDefnDAOImpl::insert);
 
@@ -139,9 +156,11 @@ public class Main extends Application {
         // threadMapToRoot.entrySet().stream()
         //         .map(Map.Entry::getValue)
         //         .forEachOrdered(convertDBtoElementTree::recursivelyUpdateColumn);
+        statusBarLabel.setText("Populating database.");
         convertDBtoElementTree.recursivelyInsertElementsIntoDB(ConvertDBtoElementTree.greatGrandParent);
         convertDBtoElementTree.recursivelyInsertEdgeElementsIntoDB(convertDBtoElementTree.greatGrandParent);
         onScrollingScrollPane();
+        statusBarLabel.setText("Ready.");
     }
 
     public void resetStaticFields() {

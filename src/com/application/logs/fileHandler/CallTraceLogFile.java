@@ -3,8 +3,14 @@ package com.application.logs.fileHandler;
 import java.io.File;
 
 public class CallTraceLogFile {
-    private static String fileName = "L-Instrumentation_call_trace_1_wait.txt";
-    // private static String fileName = "L-Instrumentation_call_trace_works_medium_complexity.txt";
+    // ToDO next version.
+    // Change time stamp to milliseconds.
+    // get logs from a real app
+    // UI - thread info in left pane. show single thread on canvas
+    // UI - label for each node for classname.methodname.
+
+    // private static String fileName = "L-Instrumentation_call_trace_1_wait.txt";
+    private static String fileName = "L-Instrumentation_call_trace_works_basic_complexity_4.txt";
     private static File file = new File(Thread.currentThread().getContextClassLoader().getResource(fileName).getFile());
 
     CallTraceLogFile() {

@@ -29,7 +29,8 @@ public class Model {
 
     Map<String, Edge> mapEdgesOnUI = new HashMap<>();
 
-    Set<Edge> listEdgesOnUI = new HashSet<>();
+    List<Edge> listEdgesOnUI = new ArrayList<>();
+
     public Model() {
         graphParent = new Cell("_ROOT_");
         // clear model, create lists
@@ -55,31 +56,33 @@ public class Model {
         // edge.setTranslateZ(.5);
         addedEdges.add(edge);
         if (edge != null && !mapEdgesOnUI.containsKey(edge.getEdgeId())) {
-            // System.out.println(">> Adding edge: " + edge.getEdgeId());
+            // System.out.println();
+            // System.out.println();
+            // System.out.println(">>>> Adding edge: " + edge.getEdgeId());
             // System.out.println(">>>> List: Before adding: size:" + listEdgesOnUI.size());
             // listEdgesOnUI.stream()
-            //         .forEach(s -> System.out.println("    : " +s.getEdgeId() + " : " + s));
+            //         .forEach(s -> System.out.print("    : " +s.getEdgeId()));
             // System.out.println();
             //
             // System.out.println(">>>> MAP: Before adding: size:" + mapEdgesOnUI.size());
             // mapEdgesOnUI.entrySet().stream()
-            //         .forEach(s -> System.out.println("    : " + s.getKey() + " : " + s));
+            //         .forEach(s -> System.out.print("    : " + s.getKey()));
             // System.out.println();
-
-
+            //**********************************************
             mapEdgesOnUI.put(
                     edge.getEdgeId(),
                     edge);
             listEdgesOnUI.add(edge);
-            // System.out.println(">>>> After adding: size:" + listEdgesOnUI.size());
-            // listEdgesOnUI.stream()
-            //         .forEach(s -> System.out.println("    : " +s.getEdgeId() + " : " + s));
-            //
-            // System.out.println(">>>> MAP: AFter adding: size:" + mapEdgesOnUI.size());
-            // mapEdgesOnUI.entrySet().stream()
-            //         .forEach(s -> System.out.println("    : " + s.getKey() + " : " + s));
-            // System.out.println();
+            //**********************************************
 
+            // System.out.println(">>>> List: After adding: size:" + listEdgesOnUI.size());
+            // listEdgesOnUI.stream()
+            //         .forEach(s -> System.out.print("    : " + s.getEdgeId()));
+            // System.out.println();
+            // System.out.println(">>>> MAP: After adding: size:" + mapEdgesOnUI.size());
+            // mapEdgesOnUI.entrySet().stream()
+            //         .forEach(s -> System.out.print("    : " + s.getKey()));
+            // System.out.println();
         }
     }
 
@@ -94,7 +97,7 @@ public class Model {
     public List<CircleCell> getListCircleCellsOnUI() {
         return listCircleCellsOnUI;
     }
-    public Set<Edge> getListEdgesOnUI() {
+    public List<Edge> getListEdgesOnUI() {
         return listEdgesOnUI;
     }
 
