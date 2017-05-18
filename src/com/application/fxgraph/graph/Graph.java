@@ -48,6 +48,14 @@ public class Graph {
         // System.out.println("Lines have been drawn: level: " + Element.getMaxLevelCount() * BoundBox.unitWidthFactor + "; leaf: " + Element.getMaxLeafCount() * BoundBox.unitHeightFactor );
     }
 
+    public static void drawPlaceHolderLines(int height, int width) {
+        Line hPlaceHolderLine = new Line(0, 0, (width + 2) * BoundBox.unitWidthFactor, 0);
+        cellLayer.getChildren().add(hPlaceHolderLine);
+
+        Line vPlaceHolderLine = new Line(0, 0, 0, height * BoundBox.unitHeightFactor);
+        cellLayer.getChildren().add(vPlaceHolderLine);
+    }
+
     public ScrollPane getScrollPane() {
         return this.scrollPane;
     }

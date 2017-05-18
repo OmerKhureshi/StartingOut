@@ -396,7 +396,6 @@ public class EventHandlers {
                             String parentId = String.valueOf(parentRS.getInt("parent_id"));
                             CircleCell parentCell = graph.getModel().getMapCircleCellsOnUI().get(parentId);
 
-                           /*
                             Edge edge = new Edge(parentCell, cell);
 
                             EdgeDAOImpl.updateWhere("collapsed", "0",
@@ -404,7 +403,6 @@ public class EventHandlers {
 
                             graph.getModel().addEdge(edge);
 
-                            */
                         }
                     }
                     graph.myEndUpdate();
@@ -439,12 +437,10 @@ public class EventHandlers {
                             String parentId = String.valueOf(parentRS.getInt("parent_id"));
                             CircleCell parentCell = graph.getModel().getMapCircleCellsOnUI().get(parentId);
 
-                            /*
                             Edge edge = new Edge(parentCell, cell);
                             EdgeDAOImpl.updateWhere("collapsed", "0",
                                     "fk_target_element_id = " + cellId);
                             graph.getModel().addEdge(edge);
-                            */
                         }
                     }
                     graph.myEndUpdate();

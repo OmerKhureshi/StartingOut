@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * used by JavaFX or Cell, which is used for a different purpose here.
  */
 public class Element {
-    private static final AtomicInteger count = new AtomicInteger(0);
+    private static AtomicInteger count = new AtomicInteger(0);
     private int elementId;
     private int fkEnterCallTrace;
     private int fkExitCallTrace;
@@ -42,6 +42,7 @@ public class Element {
     private int coordMultiplier = 1;
 
     public Element(Element parent) {
+
         elementId = count.incrementAndGet();
         this.parent = parent;
         if (parent != null ) {
@@ -53,6 +54,10 @@ public class Element {
             // If this element is the root.
             setIndexInParent(0);
         }
+    }
+
+    public static void clearAutoIncrementId() {
+        count = new AtomicInteger(0);
     }
 
     public Element( Element parent, int fkEnterCallTrace) {
@@ -201,7 +206,7 @@ public class Element {
      * Returns the root element of the tree of elements.
      * @return root element or null if current element is root.
      */
-    public Element getRoot(){
+    public Element getRoot() {
         if(getParent() == null)
             return null;
 
@@ -218,6 +223,7 @@ public class Element {
      * determined by the number of leaves it has; represented by leafCount.
      */
     private void setBoundBox() {
+
         if (getParent() != null && getIndexInParent() != 0) {
             // If this element has another sibling element before it, get few of its bounds.
             Element sib = getParent().getChildren().get(getIndexInParent() - 1);
@@ -235,6 +241,12 @@ public class Element {
             BoundBox parentBB = getParent().boundBox;
             boundBox.xTopLeft = parentBB.xTopRight;
             boundBox.yTopLeft = parentBB.yTopRight;
+        }
+
+        if (getLevelCount() == 1) {
+            // This is the thread root.
+            boundBox.xTopLeft= 0;
+            boundBox.yTopLeft = 0;
         }
 
         boundBox.xTopRight = boundBox.xTopLeft + boundBox.unitWidthFactor;

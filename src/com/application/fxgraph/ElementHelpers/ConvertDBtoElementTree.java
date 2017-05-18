@@ -5,6 +5,8 @@ import com.application.db.DAOImplementation.CallTraceDAOImpl;
 import com.application.db.DAOImplementation.EdgeDAOImpl;
 import com.application.db.DAOImplementation.ElementDAOImpl;
 import com.application.db.DAOImplementation.ElementToChildDAOImpl;
+import com.application.db.DatabaseUtil;
+import com.application.db.TableNames;
 import com.application.fxgraph.cells.CircleCell;
 import com.application.fxgraph.graph.CellLayer;
 import com.application.fxgraph.graph.Edge;
@@ -15,7 +17,9 @@ import javafx.geometry.BoundingBox;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.shape.Line;
 
+import javax.xml.crypto.Data;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -27,8 +31,12 @@ public class ConvertDBtoElementTree {
     Map<Integer, Element> currentMap;
     Graph graph;
     Model model;
+    private String currentThreadId = "-1";
+
+    private boolean showAllThreads = true;
 
     public ConvertDBtoElementTree() {
+        Element.clearAutoIncrementId();
         greatGrandParent = new Element(null, -2);
         rootsList = new ArrayList<>();
         currentMap = new HashMap<>();
@@ -118,20 +126,13 @@ public class ConvertDBtoElementTree {
      * Ensure that the sub tree is fully constructed before invoking this method.
      */
     public void calculateElementProperties() {
-        /*
-        Iterate through the threadMapToRoot and calculate Element properties for all the roots.
-         */
-        // threadMapToRoot.entrySet().stream()
-        //         .map(Map.Entry::getValue)
-        //         .forEachOrdered(root -> {
-        //             root.calculateLeafCount();
-        //             root.calculateLevelCount(0);
-        //             root.setBoundBoxOnAll(root);
-        //         });
-        //
         greatGrandParent.calculateLeafCount();
         greatGrandParent.calculateLevelCount(0);
-        greatGrandParent.setBoundBoxOnAll(greatGrandParent);
+
+        greatGrandParent.getChildren().stream().forEach(element -> {
+            element.setBoundBoxOnAll(element);
+        });
+        // greatGrandParent.setBoundBoxOnAll(greatGrandParent);
 
     }
 
@@ -177,26 +178,45 @@ public class ConvertDBtoElementTree {
         double viewPortMinY = boundingBox.getMinY();
         double viewPortMaxY = boundingBox.getMaxY();
         int offset = 40;
-        String whereClause = "bound_box_x_coordinate > " + (viewPortMinX) +
-                " AND bound_box_x_coordinate < " + (viewPortMaxX) +
-                " AND bound_box_y_coordinate > " + (viewPortMinY + offset) +
-                " AND bound_box_y_coordinate < " + (viewPortMaxY - offset);
+
+        String sql = "SELECT E.ID AS EID, parent_id, collapsed, bound_box_x_coordinate, bound_box_y_coordinate, message, id_enter_call_trace " +
+                "FROM " + TableNames.CALL_TRACE_TABLE + " AS CT JOIN " + TableNames.ELEMENT_TABLE + " AS E ON CT.ID = E.ID_ENTER_CALL_TRACE " +
+                // "WHERE CT.THREAD_ID = " + currentThreadId +
+                " AND E.bound_box_x_coordinate > " + (viewPortMinX) +
+                " AND E.bound_box_x_coordinate < " + (viewPortMaxX) +
+                " AND E.bound_box_y_coordinate > " + (viewPortMinY + offset) +
+                " AND E.bound_box_y_coordinate < " + (viewPortMaxY - offset);
+
+        // String whereClause = "bound_box_x_coordinate > " + (viewPortMinX) +
+        //         " AND bound_box_x_coordinate < " + (viewPortMaxX) +
+        //         " AND bound_box_y_coordinate > " + (viewPortMinY + offset) +
+        //         " AND bound_box_y_coordinate < " + (viewPortMaxY - offset);
 
         CircleCell curCircleCell = null;
         CircleCell parentCircleCell = null;
 
-        try (ResultSet rs = ElementDAOImpl.selectWhere(whereClause)) {
+        // try (ResultSet rs = ElementDAOImpl.selectWhere(whereClause)) {
+        try (ResultSet rs = DatabaseUtil.select(sql)) {
             while (rs.next()) {
-                String id = String.valueOf(rs.getInt("id"));
+                // ResultSetMetaData rsmd = rs.getMetaData();
+                // for (int i = 1; i < rsmd.getColumnCount()+1; i++) {
+                //     System.out.println(">>>>>>>>>>>>> " + rsmd.getColumnName(i));
+                // }
+
+                String id = String.valueOf(rs.getInt("EID"));
                 String parentId = String.valueOf(rs.getInt("parent_id"));
                 int collapsed = rs.getInt("collapsed");
                 float xCoordinate = rs.getFloat("bound_box_x_coordinate");
                 float yCoordinate = rs.getFloat("bound_box_y_coordinate");
                 int idEnterCallTrace = rs.getInt("id_enter_call_trace");
                 String eventType = "";
-                try  (ResultSet ctRS = CallTraceDAOImpl.selectWhere("id = " + idEnterCallTrace)) {
-                    if (ctRS.next()) eventType = ctRS.getString("message");
-                }
+                // String threadToShow = "";
+                // if (!showAllThreads) threadToShow = " AND thread_id = " + currentThreadId;
+                // try  (ResultSet ctRS = CallTraceDAOImpl.selectWhere("id = " + idEnterCallTrace + threadToShow)) {
+                //     System.out.println(" just showing: " + threadToShow);
+                //     if (ctRS.next())
+                eventType = rs.getString("message");
+                // }
 
                 /*
                 * collapsed - actions
@@ -265,6 +285,7 @@ public class ConvertDBtoElementTree {
         }
 
         removeFromUI(graph);
+        
     }
 
     public void getEdgesFromResultSet(ResultSet rs) {
@@ -277,10 +298,10 @@ public class ConvertDBtoElementTree {
                 double startY = rs.getFloat("start_y");
                 double endY = rs.getFloat("end_y");
 
-                /*
+
                 curEdge = new Edge(targetEdgeId, startX, endX, startY, endY);
                 model.addEdge(curEdge);
-                */
+
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -289,8 +310,8 @@ public class ConvertDBtoElementTree {
 
     // Object lock = Main.getLock();
     List<CircleCell> removedCircleCells = new ArrayList<>();
-    List<Edge> removedEdges = new ArrayList<>();
 
+    List<Edge> removedEdges = new ArrayList<>();
     public void removeFromUI(Graph graph) {
         CellLayer cellLayer = (CellLayer) graph.getCellLayer();
         Model model = graph.getModel();
@@ -358,15 +379,52 @@ public class ConvertDBtoElementTree {
         // removeFromCellLayer();
     }
 
-
     public void removeFromCellLayer() {
         CellLayer cellLayer = (CellLayer) graph.getCellLayer();
-        removedCircleCells.stream().forEach(circleCell ->  {
-            Platform.runLater(() -> cellLayer.getChildren().remove(circleCell));
-        });
-        removedEdges.stream().forEach(edge ->  {
-            Platform.runLater(() -> cellLayer.getChildren().remove(edge));
-        });
+        cellLayer.getChildren().clear();
+
+        String SQLMaxLevelCount = "select max(LEVEL_COUNT) from ELEMENT " +
+                "where ID_ENTER_CALL_TRACE in " +
+                "(SELECT  CALL_TRACE.ID from CALL_TRACE where THREAD_ID  = " + currentThreadId + ")";
+
+        int width = 0;
+        ResultSet rs = DatabaseUtil.select(SQLMaxLevelCount);
+        try {
+            if (rs.next()) {
+                width = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        String SQLMaxLeafCount = "select BOUND_BOX_Y_BOTTOM_LEFT from ELEMENT " +
+                "where LEVEL_COUNT = 1 " +
+                "AND ID in  (SELECT PARENT_ID from ELEMENT_TO_CHILD " +
+                "  where CHILD_ID in " +
+                "        (SELECT  min(CALL_TRACE.ID) from CALL_TRACE where THREAD_ID  = " + currentThreadId + "))";
+
+        int height = 0;
+        rs = DatabaseUtil.select(SQLMaxLeafCount);
+        try {
+            if (rs.next()) {
+                height = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        graph.drawPlaceHolderLines(height, width);
+    }
+
+    public void setCurrentThreadId(String currentThreadId) {
+        this.currentThreadId = currentThreadId;
+    }
+
+    public boolean isShowAllThreads() {
+        return showAllThreads;
+    }
+
+    public void setShowAllThreads(boolean showAllThreads) {
+        this.showAllThreads = showAllThreads;
     }
 }
 

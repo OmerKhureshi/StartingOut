@@ -25,6 +25,7 @@ public class DatabaseUtil {
         return false;
     }
 
+
     public void closeResultSet(ResultSet resultSet) {
         try {
             resultSet.close();
@@ -32,7 +33,6 @@ public class DatabaseUtil {
             System.out.println("DatabaseUtil::close: error code: " + e.getErrorCode());
         }
     }
-
 
 
     private static Connection createDatabaseConnection() {
@@ -279,59 +279,19 @@ public class DatabaseUtil {
 
     }
 
-    public static ArrayList<String> select(int n, String table)
-            throws SQLException, ClassNotFoundException, InstantiationException, IllegalAccessException{
-        Connection c = getConnection();
-        Statement ps = null;
-        ResultSet rs;
-        ArrayList<String> process = new ArrayList<>();
-        String query;
 
-        if (!table.equals(METHOD_DEFINITION_TABLE) && !table.equals(CALL_TRACE_TABLE)) {
-            throw new IllegalArgumentException("Invalid table name. " + table);
-        }
-        try{
-            ps = c.createStatement();
-            ps.setMaxRows(n);
-            query = "SELECT * FROM " + table;
-            rs = ps.executeQuery(query);
-            int count = rs.getMetaData().getColumnCount();
-            while(rs.next()){
-                StringBuilder sb = new StringBuilder();
-                for (int i = 1; i <=count ; i++) {
-                    System.out.println(" >> " + rs.getString(i));
-                    sb.append(rs.getString(i) + " : ");
-                }
-                process.add(sb.toString());
-//
-//                process.clear();
-//                process.add(Integer.toString(rs.getInt("processID")));
-//                process.add("\t");
-//                process.add(Integer.toString(rs.getInt("threadID")));
-//                process.add("\t");
-//                process.add(Integer.toString(rs.getInt("methodID")));
-//                process.add("\t");
-//                process.add(rs.getString("message"));
-//                process.add("\t");
-//                process.add(rs.getString("parameter"));
-            }
-
+    static Connection conn;
+    static Statement ps;
+    public static ResultSet select(String query ) {
+        try {
+            conn = getConnection();
+            ps = conn.createStatement();
+            return ps.executeQuery(query);
         } catch (SQLException e) {
+            System.out.println("Exception caused by: " + query);
             e.printStackTrace();
         }
-        finally{
-
-            if (ps != null){
-                try { ps.close();} catch (SQLException e){;}
-                ps = null;
-            }
-            if (c != null){
-                try {c.close();} catch(SQLException e) {;}
-                c = null;
-            }
-        }
-
-        return process;
+        throw new IllegalStateException("Table does not exist. Hence cannot fetch any rows from it.");
     }
 
     public static void dropCallTrace() {

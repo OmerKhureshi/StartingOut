@@ -7,7 +7,6 @@ import com.application.fxgraph.ElementHelpers.Element;
 import com.application.fxgraph.cells.CircleCell;
 import com.application.fxgraph.cells.TriangleCell;
 import com.application.fxgraph.cells.RectangleCell;
-// Remember you are on a different branch..
 
 public class Model {
 
@@ -107,6 +106,14 @@ public class Model {
 
     public Map<String, Edge> getMapEdgesOnUI() {
         return mapEdgesOnUI;
+    }
+
+    public void clearScrollPane() {
+        mapCircleCellsOnUI.clear();
+        listCircleCellsOnUI.clear();
+
+        mapEdgesOnUI.clear();
+        listEdgesOnUI.clear();
     }
 
     /*

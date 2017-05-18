@@ -1,35 +1,33 @@
 package com.application;
 
 import com.application.db.DAOImplementation.*;
-import com.application.db.DatabaseUtil;
-import com.application.db.TableNames;
 import com.application.fxgraph.ElementHelpers.ConvertDBtoElementTree;
 import com.application.fxgraph.ElementHelpers.Element;
 import com.application.fxgraph.cells.CircleCell;
 import com.application.fxgraph.graph.*;
-import com.application.fxgraph.layout.base.Layout;
-import com.application.fxgraph.layout.random.RandomLayout;
 import com.application.logs.fileHandler.CallTraceLogFile;
 import com.application.logs.fileHandler.MethodDefinitionLogFile;
 import com.application.logs.fileIntegrity.CheckFileIntegrity;
 import com.application.logs.parsers.ParseCallTrace;
 import javafx.application.Application;
-import javafx.beans.property.StringProperty;
-import javafx.geometry.BoundingBox;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import jdk.nashorn.internal.codegen.CompilerConstants;
-import oracle.jrockit.jfr.StringConstantPool;
-import sun.management.MethodInfo;
 
-import javax.xml.crypto.Data;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+
+// DoneToDo: Figure out reloading.
+// ToDo: Change time stamp to milliseconds.
+// ToDo: get logs from a real app
+// ToDo: UI - thread info in left pane. show single thread on canvas
+// ToDo: UI - label for each node for classname.methodname.
 
 public class Main extends Application {
     // Part of code from http://stackoverflow.com/a/30696075/3690248
@@ -39,8 +37,12 @@ public class Main extends Application {
     Scene scene;
     public Stage primaryStage;
     Label statusBarLabel = new Label();
+    ListView<String> threadListView;
+    ObservableList<String> threadsObsList;
 
     ConvertDBtoElementTree convertDBtoElementTree;
+
+
 
     // public static Object getLock() {
     //     return lock;
@@ -74,16 +76,15 @@ public class Main extends Application {
         mb.getMenus().add(file);
 
         demoOne.setOnAction(event -> {
+
             CallTraceLogFile.setFileName("L-Instrumentation_call_trace_works_basic_complexity_4.txt");
             System.out.println("first demo");
             reload();
         });
 
         demoTwo.setOnAction(event -> {
-            System.out.println("second demo");
             CallTraceLogFile.setFileName("L-Instrumentation_call_trace_works_basic_complexity_4.txt");
-            // reload(primaryStage);
-            reload2();
+            System.out.println("second demo");
             reload();
         });
 
@@ -93,7 +94,7 @@ public class Main extends Application {
         statusBarLabel.setText("Done Loading into Database. Application ready.");
         statusBar.getChildren().add(statusBarLabel);
         root.setBottom(statusBar);
-        scene = new Scene(root, 500, 300);
+        scene = new Scene(root, 1000, 300);
         scene.getStylesheets().add(getClass().getResource("/application.css").toExternalForm());
 
         primaryStage.setScene(scene);
@@ -102,16 +103,28 @@ public class Main extends Application {
     }
 
     public void reload() {
+        // Layout Center
         graph = new Graph();
         root.setCenter(null);
         root.setCenter(graph.getScrollPane());
         ((ZoomableScrollPane) graph.getScrollPane()).saveRef(this);
-        addGraphCellComponents();
-    }
 
-    public void reload2(){
-        graph = new Graph();
-        root.setCenter(null);
+        // Layout Left
+        threadListView = new ListView<>();
+        threadsObsList = FXCollections.observableArrayList();
+        threadListView.setItems(threadsObsList);
+        root.setLeft(threadListView);
+
+        threadListView.setOnMouseClicked(event -> {
+            String selectedItem = threadListView.getSelectionModel().getSelectedItem();
+            String threadId = selectedItem.split(" ")[1];
+            // System.out.println("You clicked thread: " + threadId);
+            convertDBtoElementTree.setCurrentThreadId(threadId);
+            convertDBtoElementTree.removeFromCellLayer();
+            onScrollingScrollPane();
+        });
+
+        addGraphCellComponents();
     }
 
     private void addGraphCellComponents() {
@@ -139,6 +152,7 @@ public class Main extends Application {
         new ParseCallTrace().readFile(MethodDefinitionLogFile.getFile(), MethodDefnDAOImpl::insert);
 
         convertDBtoElementTree = new ConvertDBtoElementTree();
+
         new ParseCallTrace().readFile(CallTraceLogFile.getFile(),
                 parsedLineList -> {
                     try {
@@ -148,17 +162,31 @@ public class Main extends Application {
                         e.printStackTrace();
                     }
                 });
+
         convertDBtoElementTree.calculateElementProperties();
         Graph.drawPlaceHolderLines();
+
         statusBarLabel.setText("Populating database.");
+
         convertDBtoElementTree.recursivelyInsertElementsIntoDB(ConvertDBtoElementTree.greatGrandParent);
         convertDBtoElementTree.recursivelyInsertEdgeElementsIntoDB(convertDBtoElementTree.greatGrandParent);
+
+        ConvertDBtoElementTree.greatGrandParent.getChildren().stream()
+                .forEach(element -> {
+                    Element child = element.getChildren().get(0);
+                    int callTraceId = -1;
+                    if (child != null) callTraceId = child.getFkEnterCallTrace();
+                    try (ResultSet rs = CallTraceDAOImpl.selectWhere("id = " + callTraceId)) {
+                        if (rs.next()) {
+                            int threadId = rs.getInt("thread_id");
+                            threadsObsList.add("Thread: " + threadId);
+                        }
+                    } catch (SQLException e) {
+                    }
+                });
+
         onScrollingScrollPane();
         statusBarLabel.setText("Ready.");
-    }
-
-    public void releaseElements(){
-
     }
 
     private void createCircleCellsRecursively(Element root, Model model) {
@@ -284,4 +312,6 @@ public class Main extends Application {
     public static void main(String[] args){
         launch(args);
     }
+
+
 }
