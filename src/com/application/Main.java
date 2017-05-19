@@ -42,13 +42,6 @@ public class Main extends Application {
 
     ConvertDBtoElementTree convertDBtoElementTree;
 
-
-
-    // public static Object getLock() {
-    //     return lock;
-    // }
-    static Object lock = new Object();
-
     @Override
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
@@ -149,6 +142,7 @@ public class Main extends Application {
         EdgeDAOImpl.dropTable();
         statusBarLabel.setText("Loading log file.");
 
+        // Parse method definition file and insert into database.
         new ParseCallTrace().readFile(MethodDefinitionLogFile.getFile(), MethodDefnDAOImpl::insert);
 
         convertDBtoElementTree = new ConvertDBtoElementTree();
@@ -171,6 +165,7 @@ public class Main extends Application {
         convertDBtoElementTree.recursivelyInsertElementsIntoDB(ConvertDBtoElementTree.greatGrandParent);
         convertDBtoElementTree.recursivelyInsertEdgeElementsIntoDB(convertDBtoElementTree.greatGrandParent);
 
+        // Get thread list and populate
         ConvertDBtoElementTree.greatGrandParent.getChildren().stream()
                 .forEach(element -> {
                     Element child = element.getChildren().get(0);
@@ -239,31 +234,9 @@ public class Main extends Application {
         return resMap;
     }
 
-    public Map<Integer, CircleCell> nextRound(Map<Integer, CircleCell> cellList, int levelCount) {
-        Map resMap = new HashMap<Integer, CircleCell>();
-        // draws circles on UI for passed level count.
-        try {
-            ResultSet rs = ElementDAOImpl.selectWhere("level_count = " + levelCount);
-            while (rs.next()) {
-                int cellId = rs.getInt("id");
-                float cellXCoordinate = rs.getFloat("bound_box_x_coordinate");
-                float cellYCoordinate = rs.getFloat("bound_box_y_coordinate");
-                int parentId = rs.getInt("parent_id");
-                CircleCell targetCell = new CircleCell(String.valueOf(cellId), cellXCoordinate, cellYCoordinate);
-                resMap.put(cellId, targetCell);
-                model.addCell(targetCell);
-                CircleCell parentCell = cellList.get(parentId);
-                model.addEdge(parentCell, targetCell);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return resMap;
-    }
-
     public void onScrollingScrollPane() {
         if (convertDBtoElementTree!= null && graph != null) {
+            System.out.println("Scrolling now >>>>>");
             convertDBtoElementTree.getCirclesToLoadIntoViewPort(graph);
             graph.myEndUpdate();
         }

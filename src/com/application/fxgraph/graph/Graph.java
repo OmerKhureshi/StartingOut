@@ -49,9 +49,11 @@ public class Graph {
     }
 
     public static void drawPlaceHolderLines(int height, int width) {
+        System.out.println(" effective width: " + (width + 2) * BoundBox.unitWidthFactor);
         Line hPlaceHolderLine = new Line(0, 0, (width + 2) * BoundBox.unitWidthFactor, 0);
         cellLayer.getChildren().add(hPlaceHolderLine);
 
+        System.out.println(" effective height: " + height * BoundBox.unitHeightFactor);
         Line vPlaceHolderLine = new Line(0, 0, 0, height * BoundBox.unitHeightFactor);
         cellLayer.getChildren().add(vPlaceHolderLine);
     }

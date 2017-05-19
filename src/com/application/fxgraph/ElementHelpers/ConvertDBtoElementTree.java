@@ -165,6 +165,20 @@ public class ConvertDBtoElementTree {
             });
     }
 
+    /*
+    * *********************************************************
+    *  elements from screen are removed but not added back correctly.
+    *  All the elements are added back.
+    *  TODO: selectively add elements based on thread.
+    *
+    * **********************************************************
+    * */
+
+
+
+
+
+
     public void getCirclesToLoadIntoViewPort(Graph graph) {
         this.graph = graph;
         ScrollPane scrollPane = graph.getScrollPane();
@@ -396,11 +410,14 @@ public class ConvertDBtoElementTree {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        String SQLMaxLeafCount = "select BOUND_BOX_Y_BOTTOM_LEFT from ELEMENT " +
-                "where LEVEL_COUNT = 1 " +
-                "AND ID in  (SELECT PARENT_ID from ELEMENT_TO_CHILD " +
-                "  where CHILD_ID in " +
-                "        (SELECT  min(CALL_TRACE.ID) from CALL_TRACE where THREAD_ID  = " + currentThreadId + "))";
+        String SQLMaxLeafCount = "select LEAF_COUNT from ELEMENT " +
+                "where LEVEL_COUNT = 1 AND ID = " +
+                "(SELECT PARENT_ID from ELEMENT_TO_CHILD " +
+                "where CHILD_ID = " +
+                "(SELECT id from ELEMENT " +
+                "where ID_ENTER_CALL_TRACE = " +
+                "(SELECT  min(CALL_TRACE.ID) from CALL_TRACE " +
+                "where THREAD_ID  = " + currentThreadId + ")))";
 
         int height = 0;
         rs = DatabaseUtil.select(SQLMaxLeafCount);
@@ -411,6 +428,8 @@ public class ConvertDBtoElementTree {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        System.out.println(">> height: " + height + " width: " + width);
 
         graph.drawPlaceHolderLines(height, width);
     }
