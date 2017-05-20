@@ -8,25 +8,29 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 
 public class CircleCell extends Cell {
 
     Label label;
+    Label methodName;
 
     public CircleCell(String id) {
         super(id);
-        // setStyle("-fx-background-color: yellow");
-       //  Group group = new Group();
-        Circle circle = new Circle(20);
-        label = new Label(id);
 
-        // group.getChildren().addAll(circle, label);
+        // Uncomment to see yellow background on the whole circle cell stack pane.
+        // setStyle("-fx-background-color: yellow");
+        Circle circle = new Circle(20);
+        label = new Label("This is a long string");
+        methodName = new Label("");
         circle.setStroke(Color.RED);
         circle.setFill(Color.RED);
-        // label.setTranslateY(circle.getRadius() + 15);
+        circle.relocate(0,0);
 
-        getChildren().setAll(circle, label);
+        // getChildren().setAll(circle, label);
+        getChildren().add(circle);
+        getChildren().add(methodName);
         // setView(group);
     }
 
@@ -41,7 +45,6 @@ public class CircleCell extends Cell {
     public CircleCell (String id, float xCoordinate, float yCoordinate) {
         this(id);
         this.relocate(xCoordinate , yCoordinate);
-        // this.relocate((xCoordinate - getWidth()) * .5 , (yCoordinate - getHeight()) * .5);
     }
 
     public String getLabel() {
@@ -50,5 +53,18 @@ public class CircleCell extends Cell {
 
     public void setLabel(String text) {
         this.label.setText(text);
+    }
+
+    public String getMethodName() {
+        return methodName.getText();
+    }
+
+    public void setMethodName(String methodName) {
+        this.methodName.setText(methodName);
+
+        // Center the method name label below the circle.
+        this.methodName.setMinWidth(this.methodName.getText().length()*2);
+        this.methodName.relocate(-this.methodName.getMinWidth()/2, 40);
+
     }
 }

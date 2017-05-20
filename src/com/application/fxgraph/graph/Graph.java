@@ -49,7 +49,7 @@ public class Graph {
     }
 
     public static void drawPlaceHolderLines(int height, int width) {
-        System.out.println(" effective width: " + (width + 2) * BoundBox.unitWidthFactor);
+        System.out.println(" effective width: " + (width + 1) * BoundBox.unitWidthFactor);
         Line hPlaceHolderLine = new Line(0, 0, (width + 2) * BoundBox.unitWidthFactor, 0);
         cellLayer.getChildren().add(hPlaceHolderLine);
 
@@ -74,8 +74,10 @@ public class Graph {
     }
 
     public void myEndUpdate() {
+        System.out.println("ConvertDBtoElementTree::myEndUpdate: list size: " + model.listCircleCellsOnUI.size());
         model.listCircleCellsOnUI.stream().forEach(circleCell -> {
             if (circleCell !=null && !getCellLayer().getChildren().contains(circleCell))
+                System.out.println("Adding to UI: " + circleCell.getCellId());
                 Platform.runLater(() ->  getCellLayer().getChildren().add(circleCell));
         });
         model.listEdgesOnUI.stream().forEach(edge -> {
@@ -87,7 +89,7 @@ public class Graph {
 
         model.listCircleCellsOnUI.stream()
                 .forEach(circleCell -> {
-                    // eventHandlers.makeDraggable(circleCell);
+                    eventHandlers.makeDraggable(circleCell);
                 });
 
         model.clearListCircleCellsOnUI();

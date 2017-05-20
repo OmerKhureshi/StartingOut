@@ -7,7 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 
-public class Cell extends StackPane {
+public class Cell extends Pane {
 
     String cellId;
 

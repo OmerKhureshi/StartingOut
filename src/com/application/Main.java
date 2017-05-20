@@ -30,6 +30,8 @@ import java.util.Map;
 // ToDo: UI - label for each node for classname.methodname.
 
 public class Main extends Application {
+
+
     // Part of code from http://stackoverflow.com/a/30696075/3690248
     Graph graph;
     Model model;
@@ -236,7 +238,7 @@ public class Main extends Application {
 
     public void onScrollingScrollPane() {
         if (convertDBtoElementTree!= null && graph != null) {
-            System.out.println("Scrolling now >>>>>");
+            System.out.println("Main::onScrollingScrollPane: ");
             convertDBtoElementTree.getCirclesToLoadIntoViewPort(graph);
             graph.myEndUpdate();
         }

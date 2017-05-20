@@ -44,9 +44,12 @@ public class EventHandlers {
         // node.addEventFilter(MouseEvent.ANY, onMouseHoverToShowInfoEventHandler);
         // node.addEventFilter(MouseEvent.ANY, event -> System.out.println(event));
 
-        // node.setOnMousePressed(onMousePressedToCollapseTree);
-        // node.setOnMouseEntered(onMouseHoverToShowInfoEventHandler);
-        // node.setOnMouseExited(onMouseExitToDismissPopover);
+
+        node.setOnMousePressed(onMousePressedToCollapseTree);
+        node.setOnMouseEntered(onMouseHoverToShowInfoEventHandler);
+        node.setOnMouseExited(onMouseExitToDismissPopover);
+
+        // Original handlers
         // node.setOnMousePressed(onMousePressedEventHandler);
         // node.setOnMouseDragged(onMouseDraggedEventHandler);
         // node.setOnMouseReleased(onMouseReleasedEventHandler);
@@ -292,8 +295,8 @@ public class EventHandlers {
     EventHandler<MouseEvent> onMouseExitToDismissPopover = new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
-            // if (popOver != null)
-            // popOver.hide();
+            if (popOver != null)
+            popOver.hide();
         }
     };
 

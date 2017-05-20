@@ -31,7 +31,7 @@ public class ConvertDBtoElementTree {
     Map<Integer, Element> currentMap;
     Graph graph;
     Model model;
-    private String currentThreadId = "-1";
+    private String currentThreadId = "0";
 
     private boolean showAllThreads = true;
 
@@ -165,20 +165,6 @@ public class ConvertDBtoElementTree {
             });
     }
 
-    /*
-    * *********************************************************
-    *  elements from screen are removed but not added back correctly.
-    *  All the elements are added back.
-    *  TODO: selectively add elements based on thread.
-    *
-    * **********************************************************
-    * */
-
-
-
-
-
-
     public void getCirclesToLoadIntoViewPort(Graph graph) {
         this.graph = graph;
         ScrollPane scrollPane = graph.getScrollPane();
@@ -193,14 +179,18 @@ public class ConvertDBtoElementTree {
         double viewPortMaxY = boundingBox.getMaxY();
         int offset = 40;
 
-        String sql = "SELECT E.ID AS EID, parent_id, collapsed, bound_box_x_coordinate, bound_box_y_coordinate, message, id_enter_call_trace " +
+        String sql = "SELECT E.ID AS EID, parent_id, collapsed, bound_box_x_coordinate, bound_box_y_coordinate, message, id_enter_call_trace, method_name " +
                 "FROM " + TableNames.CALL_TRACE_TABLE + " AS CT JOIN " + TableNames.ELEMENT_TABLE + " AS E ON CT.ID = E.ID_ENTER_CALL_TRACE " +
-                // "WHERE CT.THREAD_ID = " + currentThreadId +
+                "JOIN " + TableNames.METHOD_DEFINITION_TABLE + " AS M ON CT.METHOD_ID = M.ID " +
+                "WHERE CT.THREAD_ID = " + currentThreadId +
                 " AND E.bound_box_x_coordinate > " + (viewPortMinX) +
                 " AND E.bound_box_x_coordinate < " + (viewPortMaxX) +
                 " AND E.bound_box_y_coordinate > " + (viewPortMinY + offset) +
-                " AND E.bound_box_y_coordinate < " + (viewPortMaxY - offset);
+                " AND E.bound_box_y_coordinate < " + (viewPortMaxY - offset) +
+                " AND E.LEVEL_COUNT > 1";
 
+        // System.out.println("ConvertDBtoElementTree::getCirclesToLoadIntoViewPort: viewport: minx: " + viewPortMinX + " minY: " + viewPortMinY + " maxX: " + viewPortMaxX + "maxY: " + viewPortMaxY );
+        System.out.println("sql run: " + sql);
         // String whereClause = "bound_box_x_coordinate > " + (viewPortMinX) +
         //         " AND bound_box_x_coordinate < " + (viewPortMaxX) +
         //         " AND bound_box_y_coordinate > " + (viewPortMinY + offset) +
@@ -223,6 +213,7 @@ public class ConvertDBtoElementTree {
                 float xCoordinate = rs.getFloat("bound_box_x_coordinate");
                 float yCoordinate = rs.getFloat("bound_box_y_coordinate");
                 int idEnterCallTrace = rs.getInt("id_enter_call_trace");
+                String methodName = rs.getString("method_name");
                 String eventType = "";
                 // String threadToShow = "";
                 // if (!showAllThreads) threadToShow = " AND thread_id = " + currentThreadId;
@@ -239,8 +230,12 @@ public class ConvertDBtoElementTree {
                 *     2     - this cell was minimized. Show on UI.
                 *     3     - parent of this cell was minimized. this cell was minimized. Don't expand this cell's children. Don't show on UI.
                 */
+
+                // Add circle cell to model.
                 if (!mapCircleCellsOnUI.containsKey(id) && (collapsed == 0 || collapsed == 2)) {
                     curCircleCell = new CircleCell(id, xCoordinate, yCoordinate);
+                    curCircleCell.setMethodName(methodName);
+                    System.out.println("ConvertDBtoElementTree::getCirclesToLoadIntoViewPort: adding cell: " + curCircleCell.getCellId());
                     model.addCell(curCircleCell);
                     String label = "";
                     switch (eventType.toUpperCase()) {
@@ -257,10 +252,11 @@ public class ConvertDBtoElementTree {
 
                     curCircleCell.setLabel(label);
 
+                    // Add parent circle cell if not already added earlier.
                     parentCircleCell = mapCircleCellsOnUI.get(parentId);
                     if (!mapCircleCellsOnUI.containsKey(parentId)) {
                         try (ResultSet rsTemp = ElementDAOImpl.selectWhere("id = " + parentId)) {
-                            if (rsTemp.next()) {
+                            if (rsTemp.next() && rsTemp.getInt("LEVEL_COUNT") > 1) {
                                 float xCoordinateTemp = rsTemp.getFloat("bound_box_x_coordinate");
                                 float yCoordinateTemp = rsTemp.getFloat("bound_box_y_coordinate");
                                 parentCircleCell = new CircleCell(parentId, xCoordinateTemp, yCoordinateTemp);
@@ -282,24 +278,50 @@ public class ConvertDBtoElementTree {
             e.printStackTrace();
         }
 
-        String commonWhereClausForEdges = "collapsed = 0 AND " + "end_x >= " + viewPortMinX + " AND start_x <= " + viewPortMaxX ;
+        // Adde edges
+
+        sql = "SELECT * FROM EDGE_ELEMENT " +
+                "INNER JOIN ELEMENT ON FK_SOURCE_ELEMENT_ID = ELEMENT.ID " +
+                "INNER JOIN CALL_TRACE ON ELEMENT.ID_ENTER_CALL_TRACE = CALL_TRACE.ID " +
+                "WHERE CALL_TRACE.THREAD_ID = " + currentThreadId + " ";
+
+        String commonWhereClausForEdges = "AND EDGE_ELEMENT.collapsed = 0 AND " + "end_x >= " + viewPortMinX + " AND start_x <= " + viewPortMaxX ;
         String whereClauseForUpwardEdges = " AND end_Y >= " + viewPortMinY + " AND start_y <= " + viewPortMaxY;
         String whereClauseForDownwardEdges = " AND start_y >= " + viewPortMinY + " AND end_Y <= " + viewPortMaxY;
 
-        try (ResultSet rsUpEdges = EdgeDAOImpl.selectWhere(commonWhereClausForEdges + whereClauseForUpwardEdges)) {
+        // System.out.println("ConvertDBtoElementTree::getCirclesToLoadIntoViewPort: sql: " + sql + commonWhereClausForEdges + whereClauseForUpwardEdges);
+        try (ResultSet rsUpEdges = DatabaseUtil.select(sql + commonWhereClausForEdges + whereClauseForUpwardEdges)) {
             getEdgesFromResultSet(rsUpEdges);
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        try (ResultSet rsDownEdges = EdgeDAOImpl.selectWhere(commonWhereClausForEdges + whereClauseForDownwardEdges)) {
+        // System.out.println("ConvertDBtoElementTree::getCirclesToLoadIntoViewPort: sql: " + sql + commonWhereClausForEdges + whereClauseForDownwardEdges);
+        try (ResultSet rsDownEdges = DatabaseUtil.select(sql + commonWhereClausForEdges + whereClauseForDownwardEdges)) {
             getEdgesFromResultSet(rsDownEdges);
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
+
+        // Add edges - doesnot have logic for thread specific edges.
+        // String commonWhereClausForEdges = "collapsed = 0 AND " + "end_x >= " + viewPortMinX + " AND start_x <= " + viewPortMaxX ;
+        // String whereClauseForUpwardEdges = " AND end_Y >= " + viewPortMinY + " AND start_y <= " + viewPortMaxY;
+        // String whereClauseForDownwardEdges = " AND start_y >= " + viewPortMinY + " AND end_Y <= " + viewPortMaxY;
+
+        // try (ResultSet rsUpEdges = EdgeDAOImpl.selectWhere(commonWhereClausForEdges + whereClauseForUpwardEdges)) {
+        //     getEdgesFromResultSet(rsUpEdges);
+        // } catch (SQLException e) {
+        //     e.printStackTrace();
+        // }
+        //
+        // try (ResultSet rsDownEdges = EdgeDAOImpl.selectWhere(commonWhereClausForEdges + whereClauseForDownwardEdges)) {
+        //     getEdgesFromResultSet(rsDownEdges);
+        // } catch (SQLException e) {
+        //     e.printStackTrace();
+        // }
+
         removeFromUI(graph);
-        
     }
 
     public void getEdgesFromResultSet(ResultSet rs) {
@@ -311,8 +333,7 @@ public class ConvertDBtoElementTree {
                 double endX = rs.getFloat("end_x");
                 double startY = rs.getFloat("start_y");
                 double endY = rs.getFloat("end_y");
-
-
+                // System.out.println("ConvertDBtoElementTree::getEdgesFromResultSet: adding edge: " + targetEdgeId);
                 curEdge = new Edge(targetEdgeId, startX, endX, startY, endY);
                 model.addEdge(curEdge);
 
@@ -322,10 +343,6 @@ public class ConvertDBtoElementTree {
         }
     }
 
-    // Object lock = Main.getLock();
-    List<CircleCell> removedCircleCells = new ArrayList<>();
-
-    List<Edge> removedEdges = new ArrayList<>();
     public void removeFromUI(Graph graph) {
         CellLayer cellLayer = (CellLayer) graph.getCellLayer();
         Model model = graph.getModel();
@@ -345,7 +362,6 @@ public class ConvertDBtoElementTree {
         int offset = 20;
         BoundingBox shrunkBB = new BoundingBox(minX + offset, minY + offset, curViewPort.getWidth() - (2 * offset), curViewPort.getHeight() - (2 * offset));
 
-        // synchronized (lock) {
             Iterator i = mapCircleCellsOnUI.entrySet().iterator();
             while (i.hasNext()) {
                 Map.Entry<String, CircleCell> entry = (Map.Entry) i.next();
@@ -388,7 +404,6 @@ public class ConvertDBtoElementTree {
                         mapEdgesOnUI.remove(edgeId);
                         listEdgesOnUI.remove(edge);
                     });
-        // }
 
         // removeFromCellLayer();
     }
@@ -396,6 +411,8 @@ public class ConvertDBtoElementTree {
     public void removeFromCellLayer() {
         CellLayer cellLayer = (CellLayer) graph.getCellLayer();
         cellLayer.getChildren().clear();
+        model.getMapCircleCellsOnUI().clear();
+        model.getMapEdgesOnUI().clear();
 
         String SQLMaxLevelCount = "select max(LEVEL_COUNT) from ELEMENT " +
                 "where ID_ENTER_CALL_TRACE in " +
@@ -445,5 +462,6 @@ public class ConvertDBtoElementTree {
     public void setShowAllThreads(boolean showAllThreads) {
         this.showAllThreads = showAllThreads;
     }
+
 }
 

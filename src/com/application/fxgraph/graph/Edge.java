@@ -83,8 +83,8 @@ public class Edge extends Group {
         label.setLayoutX(line.getStartX() + 50);
         label.setLayoutY((line.getStartY() + line.getEndY()) /2);
 
-        getChildren().add( line);
-        getChildren().add(label);
+        getChildren().add(line);
+        // getChildren().add(label);
 
     }
 
