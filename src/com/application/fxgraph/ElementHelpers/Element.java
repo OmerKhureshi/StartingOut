@@ -349,7 +349,6 @@ public class Element {
         // // string -> instant
         String str = "2017-04-18T00:00:00.111Z";
         Instant instant = Instant.parse(str);
-        System.out.println(instant);
 
         java.sql.Timestamp timestamp = new Timestamp(instant.toEpochMilli());
         System.out.println(timestamp);

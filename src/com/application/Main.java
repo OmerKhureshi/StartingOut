@@ -1,6 +1,7 @@
 package com.application;
 
 import com.application.db.DAOImplementation.*;
+import com.application.db.DatabaseUtil;
 import com.application.fxgraph.ElementHelpers.ConvertDBtoElementTree;
 import com.application.fxgraph.ElementHelpers.Element;
 import com.application.fxgraph.cells.CircleCell;
@@ -10,6 +11,7 @@ import com.application.logs.fileHandler.MethodDefinitionLogFile;
 import com.application.logs.fileIntegrity.CheckFileIntegrity;
 import com.application.logs.parsers.ParseCallTrace;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Group;
@@ -18,6 +20,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
+import javax.xml.crypto.Data;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -39,7 +42,7 @@ public class Main extends Application {
     Scene scene;
     public Stage primaryStage;
     Label statusBarLabel = new Label();
-    ListView<String> threadListView;
+    final static ListView<String> threadListView = new ListView<>();
     ObservableList<String> threadsObsList;
 
     ConvertDBtoElementTree convertDBtoElementTree;
@@ -66,20 +69,32 @@ public class Main extends Application {
         Menu file = new Menu("File");
         MenuItem demoOne = new MenuItem("Load Demo 1");
         MenuItem demoTwo = new MenuItem("Load Demo 2");
+        MenuItem demoThree = new MenuItem("Load Demo 3");
 
-        file.getItems().addAll(demoOne, demoTwo);
+        file.getItems().addAll(demoOne, demoTwo, demoThree);
         mb.getMenus().add(file);
 
         demoOne.setOnAction(event -> {
+            DatabaseUtil.shutdownDatabse();
 
-            CallTraceLogFile.setFileName("L-Instrumentation_call_trace_works_basic_complexity_4.txt");
-            System.out.println("first demo");
+            CallTraceLogFile.setFileName("L-Instrumentation_call_trace_Demo_1.txt");
+            MethodDefinitionLogFile.setFileName("L-Instrumentation_method_definitions_Demo_1.txt");
             reload();
         });
 
         demoTwo.setOnAction(event -> {
-            CallTraceLogFile.setFileName("L-Instrumentation_call_trace_works_basic_complexity_4.txt");
-            System.out.println("second demo");
+            DatabaseUtil.shutdownDatabse();
+
+            CallTraceLogFile.setFileName("L-Instrumentation_call_trace_Demo_2.txt");
+            MethodDefinitionLogFile.setFileName("L-Instrumentation_method_definitions_Demo_2.txt");
+            reload();
+        });
+
+        demoThree.setOnAction(event -> {
+            DatabaseUtil.shutdownDatabse();
+
+            CallTraceLogFile.setFileName("L-Instrumentation_call_trace_Demo_3.txt");
+            MethodDefinitionLogFile.setFileName("L-Instrumentation_method_definitions_Demo_3.txt");
             reload();
         });
 
@@ -105,7 +120,7 @@ public class Main extends Application {
         ((ZoomableScrollPane) graph.getScrollPane()).saveRef(this);
 
         // Layout Left
-        threadListView = new ListView<>();
+        // threadListView = new ListView<>();
         threadsObsList = FXCollections.observableArrayList();
         threadListView.setItems(threadsObsList);
         root.setLeft(threadListView);
@@ -113,11 +128,9 @@ public class Main extends Application {
         threadListView.setOnMouseClicked(event -> {
             String selectedItem = threadListView.getSelectionModel().getSelectedItem();
             String threadId = selectedItem.split(" ")[1];
-            // System.out.println("You clicked thread: " + threadId);
-            convertDBtoElementTree.setCurrentThreadId(threadId);
-            convertDBtoElementTree.removeFromCellLayer();
-            onScrollingScrollPane();
+            showThread(threadId);
         });
+
 
         addGraphCellComponents();
     }
@@ -168,6 +181,7 @@ public class Main extends Application {
         convertDBtoElementTree.recursivelyInsertEdgeElementsIntoDB(convertDBtoElementTree.greatGrandParent);
 
         // Get thread list and populate
+        threadsObsList.clear();
         ConvertDBtoElementTree.greatGrandParent.getChildren().stream()
                 .forEach(element -> {
                     Element child = element.getChildren().get(0);
@@ -236,9 +250,14 @@ public class Main extends Application {
         return resMap;
     }
 
+
+    public void showThread(String threadId) {
+        convertDBtoElementTree.setCurrentThreadId(threadId);
+        convertDBtoElementTree.removeFromCellLayer();
+        onScrollingScrollPane();
+    }
     public void onScrollingScrollPane() {
         if (convertDBtoElementTree!= null && graph != null) {
-            System.out.println("Main::onScrollingScrollPane: ");
             convertDBtoElementTree.getCirclesToLoadIntoViewPort(graph);
             graph.myEndUpdate();
         }
@@ -289,4 +308,8 @@ public class Main extends Application {
     }
 
 
+    public static void makeSelection(String threadId) {
+        Platform.runLater(() -> threadListView.getSelectionModel().select("Thread: " + threadId));
+
+    }
 }

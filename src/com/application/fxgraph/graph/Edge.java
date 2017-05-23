@@ -21,7 +21,7 @@ public class Edge extends Group {
         source.addCellChild(target);
         target.addCellParent(source);
 
-        Label label = new Label("111111");
+        // Label label = new Label("111111");
         line = new Line();
 
         line.setStartX    (source.getLayoutX        () + source.getPrefWidth       () * .5 );
@@ -43,11 +43,11 @@ public class Edge extends Group {
         // System.out.println( source.getCellId() + ": layoutX: " + source.getLayoutX() + "; layoutY: " + source.getLayoutY() + "; width: " + source.getWidth() + "; height: " + source.getHeight());
         // System.out.println( target.getCellId() + ": layoutX: " + target.getLayoutX() + "; layoutY: " + target.getLayoutY() + "; width: " + target.getWidth() + "; height: " + target.getHeight());
         // System.out.println(getEdgeId() + ": Line: " + line.getStartX() + "; end: " + line.getEndX());
-        label.setLayoutX(line.getLayoutX() + 20);
-        label.setLayoutY(line.getLayoutY() + 10);
+        // label.setLayoutX(line.getLayoutX() + 20);
+        // label.setLayoutY(line.getLayoutY() + 10);
 
         getChildren().add( line);
-        getChildren().add(label);
+        // getChildren().add(label);
     }
 
     public Edge(String edgeId, double startX, double endX, double startY, double endY) {

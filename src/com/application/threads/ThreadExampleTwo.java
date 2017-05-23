@@ -2,6 +2,7 @@ package com.application.threads;
 
 import java.io.File;
 
+import static java.lang.Thread.currentThread;
 import static java.lang.Thread.sleep;
 
 public class ThreadExampleTwo {
@@ -13,7 +14,6 @@ public class ThreadExampleTwo {
     boolean notified = false;
 
     public static void main(String[] args) {
-        ObjWrapper.setLogFileName(new File("ObjectWrapperCallTrace.txt"));
         new ThreadExampleTwo().startAll("Thread A", "Thread B", "Thread C");
     }
 
@@ -40,7 +40,6 @@ public class ThreadExampleTwo {
         public void run() {
             synchronized (lock) {
                 try {
-                    System.out.println("Waiting.");
                     while (!notified) {
                         ObjWrapper.wait(lock);
                     }
@@ -48,7 +47,6 @@ public class ThreadExampleTwo {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                System.out.println(lock.total);
             }
         }
     };
@@ -60,10 +58,8 @@ public class ThreadExampleTwo {
                 for (int i = 0; i < 1000; i++) {
                     lock.total++;
                 }
-//                lock.notifyAll();
                 ObjWrapper.notifyAll(lock);
                 notified = true;
-                System.out.println( "Notified");
             }
         }
     };

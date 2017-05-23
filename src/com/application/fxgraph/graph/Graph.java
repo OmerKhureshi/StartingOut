@@ -39,22 +39,22 @@ public class Graph {
     public static void drawPlaceHolderLines() {
         // Line hPlaceHolderLine = new Line(0, 0, (Element.getMaxLevelCount() + 2) * BoundBox.unitWidthFactor, 0);
         Line hPlaceHolderLine = new Line(0, 0, (Element.getMaxLevelCount() + 2) * BoundBox.unitWidthFactor, 0);
-        // hPlaceHolderLine.setStrokeWidth(2);
+        hPlaceHolderLine.setStrokeWidth(0.001);
         cellLayer.getChildren().add(hPlaceHolderLine);
 
         Line vPlaceHolderLine = new Line(0, 0, 0, ConvertDBtoElementTree.greatGrandParent.getLeafCount() * BoundBox.unitHeightFactor);
-        // vPlaceHolderLine.setStrokeWidth(2);
+        vPlaceHolderLine.setStrokeWidth(0.001);
         cellLayer.getChildren().add(vPlaceHolderLine);
         // System.out.println("Lines have been drawn: level: " + Element.getMaxLevelCount() * BoundBox.unitWidthFactor + "; leaf: " + Element.getMaxLeafCount() * BoundBox.unitHeightFactor );
     }
 
     public static void drawPlaceHolderLines(int height, int width) {
-        System.out.println(" effective width: " + (width + 1) * BoundBox.unitWidthFactor);
         Line hPlaceHolderLine = new Line(0, 0, (width + 2) * BoundBox.unitWidthFactor, 0);
+        hPlaceHolderLine.setStrokeWidth(0.001);
         cellLayer.getChildren().add(hPlaceHolderLine);
 
-        System.out.println(" effective height: " + height * BoundBox.unitHeightFactor);
         Line vPlaceHolderLine = new Line(0, 0, 0, height * BoundBox.unitHeightFactor);
+        vPlaceHolderLine.setStrokeWidth(0.001);
         cellLayer.getChildren().add(vPlaceHolderLine);
     }
 
@@ -74,10 +74,8 @@ public class Graph {
     }
 
     public void myEndUpdate() {
-        System.out.println("ConvertDBtoElementTree::myEndUpdate: list size: " + model.listCircleCellsOnUI.size());
         model.listCircleCellsOnUI.stream().forEach(circleCell -> {
             if (circleCell !=null && !getCellLayer().getChildren().contains(circleCell))
-                System.out.println("Adding to UI: " + circleCell.getCellId());
                 Platform.runLater(() ->  getCellLayer().getChildren().add(circleCell));
         });
         model.listEdgesOnUI.stream().forEach(edge -> {

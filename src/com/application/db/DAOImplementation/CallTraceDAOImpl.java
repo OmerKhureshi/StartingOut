@@ -69,9 +69,11 @@ public class CallTraceDAOImpl {
         // TimeStamp                | ProcessID | ThreadID | EventType | MethodID
         // 2017-03-31T17:00:19.305Z | 40948     |    9     |   Enter   |     1
         String time_instant = val.get(0);
-        Instant instant = Instant.parse(time_instant);
-        Timestamp timestamp = Timestamp.from(instant);
-        java.sql.Timestamp sqlTimeStamp = new Timestamp(instant.toEpochMilli());
+        // Instant instant = Instant.parse(time_instant);
+        // Timestamp timestamp = Timestamp.from(instant);
+        // java.sql.Timestamp sqlTimeStamp = new Timestamp(instant.toEpochMilli());
+
+        java.sql.Timestamp timestamp = new Timestamp(Long.valueOf(time_instant));
         int processID = Integer.parseInt(val.get(1));
         int threadID = Integer.parseInt(val.get(2));
         String eventType = val.get(3);
@@ -82,8 +84,8 @@ public class CallTraceDAOImpl {
         if (eventType.equalsIgnoreCase("ENTER")) {
             methodID = Integer.parseInt(val.get(4));
             parameters = val.get(5);
-        } else if (eventType.equalsIgnoreCase("EXIT")) {
-            methodID = Integer.parseInt(val.get(4));
+        // } else if (eventType.equalsIgnoreCase("EXIT")) {
+        //     methodID = Integer.parseInt(val.get(4));
         } else if (eventType.equalsIgnoreCase("WAIT-ENTER") || eventType.equalsIgnoreCase("WAIT-EXIT") ||
                 eventType.equalsIgnoreCase("NOTIFY-ENTER") || eventType.equalsIgnoreCase("NOTIFY-EXIT") ||
                 eventType.equalsIgnoreCase("NOTIFYALL-ENTER") || eventType.equalsIgnoreCase("NOTIFYALL-EXIT")) {

@@ -20,6 +20,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import org.controlsfx.control.PopOver;
 
+import javax.xml.crypto.Data;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -47,7 +48,12 @@ public class EventHandlers {
 
         node.setOnMousePressed(onMousePressedToCollapseTree);
         node.setOnMouseEntered(onMouseHoverToShowInfoEventHandler);
-        node.setOnMouseExited(onMouseExitToDismissPopover);
+
+        // *****************
+        // To dismiss the pop over when cursor leaves the circle. But this makes it impossible to click buttons on pop
+        // over because the pop over hides when the cursor is moved to click the button.
+        // node.setOnMouseExited(onMouseExitToDismissPopover);
+        // *****************
 
         // Original handlers
         // node.setOnMousePressed(onMousePressedEventHandler);
@@ -64,7 +70,6 @@ public class EventHandlers {
 
             Node node = (Node) event.getSource();
             CircleCell cell = (CircleCell) node;
-            // System.out.println("Clicked Cell: " + cell.getCellId());
             String timeStamp;
             int methodId, processId, threadId;
             String parameters, packageName = "", methodName = "", parameterTypes = "", eventType, lockObjectId = "";
@@ -84,6 +89,13 @@ public class EventHandlers {
                             packageName = methodDefRS.getString("package_name");
                             methodName = methodDefRS.getString("method_name");
                             parameterTypes = methodDefRS.getString("parameter_types");
+                        }
+
+                        if (methodId == 0 ) {
+                            methodName = eventType;
+                            packageName = "N/A";
+                            parameterTypes = "N/A";
+                            parameters = "N/A";
                         }
                     } catch (SQLException e) {}
 
@@ -139,14 +151,12 @@ public class EventHandlers {
                         int ctId = -2;  // Will throw exception if value not changed. Which is what we want.
                         sql = "lockobjid = '" + lockObjectId + "'" +
                                 " AND (message = 'NOTIFY-ENTER' OR message = 'NOTIFYALL-ENTER')" +
-                                " AND time_instant > " + "'" + timeStamp + "'";
-                        System.out.println( "Sql: " + sql);
+                                " AND time_instant >= " + "'" + timeStamp + "'";
 
                         try (ResultSet rs = CallTraceDAOImpl.selectWhere(sql)) {
                             if (rs.next()) {
                                 ctId = rs.getInt("id");
                                 ctIdList.add(ctId);
-                                System.out.println("WAIT: " + ctId);
                             }
                         }
 
@@ -159,78 +169,87 @@ public class EventHandlers {
                         }
                     } else if (eventType.equalsIgnoreCase("NOTIFY-ENTER")) {
 
-                        Connection conn = DatabaseUtil.getConnection();
-                        Statement ps;
-                        ps = conn.createStatement();
-                        sql = "SELECT * FROM " + TableNames.CALL_TRACE_TABLE + " AS parent\n" +
-                                "WHERE MESSAGE = 'WAIT-EXIT' \n" +
-                                "AND LOCKOBJID = '" + lockObjectId + "' " +
-                                "AND TIME_INSTANT > '" + timeStamp + "' \n" +
-                                "AND (SELECT count(*) \n" +
-                                "FROM " + TableNames.CALL_TRACE_TABLE + " AS child \n" +
-                                "WHERE child.message = 'WAIT-ENTER' \n" +
-                                "AND child.TIME_INSTANT >  '" + timeStamp + "' \n" +
-                                "AND child.TIME_INSTANT < parent.time_instant\n" +
-                                ")\n" +
-                                "= 0\n";
+                        try (Connection conn = DatabaseUtil.getConnection(); Statement ps = conn.createStatement()) {
 
-                        System.out.println( "Sql: " + sql);
-                        int ctId = -2;
-                        try (ResultSet resultSet = ps.executeQuery(sql)) {
-                            if (resultSet.next()) {
-                                ctId = resultSet.getInt("id");
-                                ctIdList.add(ctId);
-                                System.out.println("NOTIFY: " + ctId);
+
+                            sql = "SELECT * FROM " + TableNames.CALL_TRACE_TABLE + " AS parent\n" +
+                                    "WHERE MESSAGE = 'WAIT-EXIT' \n" +
+                                    "AND LOCKOBJID = '" + lockObjectId + "' " +
+                                    "AND TIME_INSTANT >= '" + timeStamp + "' \n" +
+                                    "AND (SELECT count(*) \n" +
+                                    "FROM " + TableNames.CALL_TRACE_TABLE + " AS child \n" +
+                                    "WHERE child.message = 'WAIT-ENTER' \n" +
+                                    "AND LOCKOBJID = '" + lockObjectId + "' " +
+                                    "AND child.TIME_INSTANT >=  '" + timeStamp + "' \n" +
+                                    "AND child.TIME_INSTANT <= parent.time_instant\n" +
+                                    ")\n" +
+                                    "= 0\n";
+
+                            System.out.println("Sql: " + sql);
+                            int ctId = -2;
+                            try (ResultSet resultSet = ps.executeQuery(sql)) {
+                                if (resultSet.next()) {
+                                    ctId = resultSet.getInt("id");
+                                    ctIdList.add(ctId);
+                                }
                             }
-                        }
 
-                        try (ResultSet elementRS = ElementDAOImpl.selectWhere("id_enter_call_trace = " + ctId)) {
-                            // Expecting to see a single row.
-                            if (elementRS.next()) {
-                                int elementId = elementRS.getInt("id");
-                                eleIdList.add(elementId);
+                            try (ResultSet elementRS = ElementDAOImpl.selectWhere("id_exit_call_trace = " + ctId)) {
+                                // Expecting to see a single row.
+                                if (elementRS.next()) {
+                                    int elementId = elementRS.getInt("id");
+                                    eleIdList.add(elementId);
+                                }
                             }
                         }
 
                     } else if (eventType.equalsIgnoreCase("NOTIFYALL-ENTER")) {
-                        Connection conn;
-                        Statement ps;
-                        conn = DatabaseUtil.getConnection();
-                        ps = conn.createStatement();
-                        sql = "SELECT * FROM " + TableNames.CALL_TRACE_TABLE + " AS parent WHERE MESSAGE = 'WAIT-EXIT' " +
-                                "AND LOCKOBJID = '" + lockObjectId + "' " +
-                                "AND TIME_INSTANT > '" + timeStamp + "' " +
-                                "AND (SELECT count(*) FROM " + TableNames.CALL_TRACE_TABLE + " AS child " +
-                                "WHERE child.message = 'WAIT-ENTER' " +
-                                "AND child.TIME_INSTANT > '" + timeStamp + "' " +
-                                "AND child.TIME_INSTANT < parent.time_instant ) = 0";
-                        System.out.println( "Sql: " + sql);
+                        try (Connection conn = DatabaseUtil.getConnection();
+                             Statement ps = conn.createStatement();) {
 
-                        int ctId = -2;
-                        try (ResultSet resultSet = ps.executeQuery(sql)) {
-                            while (resultSet.next()) {
-                                ctId = resultSet.getInt("id");
-                                ctIdList.add(ctId);
-                                System.out.println("NOTIFY ALL: " + ctId);
-                            }
-                        }
 
-                        ctIdList.stream().forEach(id -> {
-                            try (ResultSet elementRS = ElementDAOImpl.selectWhere("id_exit_call_trace = " + id)) {
-                                // Can be more than a single row.
-                                while (elementRS.next()) {
-                                    int elementId = elementRS.getInt("id");
-                                    eleIdList.add(elementId);
+                            sql = "SELECT * FROM " + TableNames.CALL_TRACE_TABLE + " AS parent WHERE MESSAGE = 'WAIT-EXIT' " +
+                                    "AND LOCKOBJID = '" + lockObjectId + "' " +
+                                    "AND TIME_INSTANT >= '" + timeStamp + "' " +
+                                    "AND (SELECT count(*) FROM " + TableNames.CALL_TRACE_TABLE + " AS child " +
+                                    "WHERE child.message = 'WAIT-ENTER' " +
+                                    "AND LOCKOBJID = '" + lockObjectId + "' " +
+                                    "AND child.TIME_INSTANT >= '" + timeStamp + "' " +
+                                    "AND child.TIME_INSTANT <= parent.time_instant ) = 0";
+
+                            int ctId = -2;
+
+                            try (ResultSet resultSet = ps.executeQuery(sql)) {
+                                while (resultSet.next()) {
+                                    ctId = resultSet.getInt("id");
+                                    ctIdList.add(ctId);
                                 }
-                            }catch (SQLException e) {}
-                        });
+                            }
+
+                            ctIdList.stream().forEach(id -> {
+                                try (ResultSet elementRS = ElementDAOImpl.selectWhere("id_exit_call_trace = " + id)) {
+                                    // Can be more than a single row.
+                                    while (elementRS.next()) {
+                                        int elementId = elementRS.getInt("id");
+                                        eleIdList.add(elementId);
+                                    }
+                                } catch (SQLException e) {
+                                }
+                            });
+                        }
                     }
 
                     List<Button> buttonList = new ArrayList<>();
                     eleIdList.stream().forEach(elementId ->{
-                        try (ResultSet elementRS = ElementDAOImpl.selectWhere("id = " + elementId)){
+                        String query = "SELECT E.ID AS EID, bound_box_x_coordinate, bound_box_y_coordinate, THREAD_ID " +
+                                "FROM CALL_TRACE AS CT " +
+                                "JOIN ELEMENT AS E ON CT.ID = E.ID_ENTER_CALL_TRACE " +
+                                "WHERE E.ID = " + elementId;
+                        try (ResultSet elementRS = DatabaseUtil.select(query)){
+                        // try (ResultSet elementRS = ElementDAOImpl.selectWhere("id = " + elementId)){
                             if (elementRS.next()) {
-                                int id = elementRS.getInt("id");
+                                int id = elementRS.getInt("EID");
+                                String targetThreadId = String.valueOf(elementRS.getInt("thread_id"));
                                 float xCoordinate = elementRS.getFloat("bound_box_x_coordinate");
                                 float yCoordinate = elementRS.getFloat("bound_box_y_coordinate");
                                 double width = graph.getScrollPane().getContent().getBoundsInLocal().getWidth();
@@ -238,16 +257,14 @@ public class EventHandlers {
 
                                 Button button = new Button();
                                 button.setOnMouseClicked(event1 -> {
-                                    System.out.println(" button clicked: element to goto is: " + id);
-                                    graph.getScrollPane().setVvalue((yCoordinate + 60 )/ height);
-                                    graph.getScrollPane().setHvalue(xCoordinate / width);
+                                    main.showThread(targetThreadId);
+                                    Main.makeSelection(targetThreadId);
                                 });
                                 buttonList.add(button);
                             }
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
-
                     });
 
                     String message = "", actionMsg = "";

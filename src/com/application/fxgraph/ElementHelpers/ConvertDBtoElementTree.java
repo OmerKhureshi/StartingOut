@@ -1,10 +1,7 @@
 package com.application.fxgraph.ElementHelpers;
 
 import com.application.Main;
-import com.application.db.DAOImplementation.CallTraceDAOImpl;
-import com.application.db.DAOImplementation.EdgeDAOImpl;
-import com.application.db.DAOImplementation.ElementDAOImpl;
-import com.application.db.DAOImplementation.ElementToChildDAOImpl;
+import com.application.db.DAOImplementation.*;
 import com.application.db.DatabaseUtil;
 import com.application.db.TableNames;
 import com.application.fxgraph.cells.CircleCell;
@@ -171,7 +168,6 @@ public class ConvertDBtoElementTree {
         Model model = graph.getModel();
         this.model = model;
         Map<String, CircleCell> mapCircleCellsOnUI = model.getMapCircleCellsOnUI();
-        Map<String, Edge> mapEdgesOnUI = model.getMapEdgesOnUI();
         BoundingBox boundingBox = Graph.getViewPortDims(scrollPane);
         double viewPortMinX = boundingBox.getMinX();
         double viewPortMaxX = boundingBox.getMaxX();
@@ -179,33 +175,23 @@ public class ConvertDBtoElementTree {
         double viewPortMaxY = boundingBox.getMaxY();
         int offset = 40;
 
-        String sql = "SELECT E.ID AS EID, parent_id, collapsed, bound_box_x_coordinate, bound_box_y_coordinate, message, id_enter_call_trace, method_name " +
+        String sql = "SELECT E.ID AS EID, parent_id, collapsed, bound_box_x_coordinate, bound_box_y_coordinate, message, id_enter_call_trace, method_id " +
                 "FROM " + TableNames.CALL_TRACE_TABLE + " AS CT JOIN " + TableNames.ELEMENT_TABLE + " AS E ON CT.ID = E.ID_ENTER_CALL_TRACE " +
-                "JOIN " + TableNames.METHOD_DEFINITION_TABLE + " AS M ON CT.METHOD_ID = M.ID " +
                 "WHERE CT.THREAD_ID = " + currentThreadId +
-                " AND E.bound_box_x_coordinate > " + (viewPortMinX) +
-                " AND E.bound_box_x_coordinate < " + (viewPortMaxX) +
-                " AND E.bound_box_y_coordinate > " + (viewPortMinY + offset) +
-                " AND E.bound_box_y_coordinate < " + (viewPortMaxY - offset) +
+                " AND E.bound_box_x_coordinate > " + (viewPortMinX - offset) +
+                " AND E.bound_box_x_coordinate < " + (viewPortMaxX + offset) +
+                // " AND E.bound_box_y_coordinate > " + (viewPortMinY + offset) +
+                " AND E.bound_box_y_coordinate > " + (viewPortMinY - offset) +
+                // " AND E.bound_box_y_coordinate < " + (viewPortMaxY - offset) +
+                " AND E.bound_box_y_coordinate < " + (viewPortMaxY + offset) +
                 " AND E.LEVEL_COUNT > 1";
 
-        // System.out.println("ConvertDBtoElementTree::getCirclesToLoadIntoViewPort: viewport: minx: " + viewPortMinX + " minY: " + viewPortMinY + " maxX: " + viewPortMaxX + "maxY: " + viewPortMaxY );
-        System.out.println("sql run: " + sql);
-        // String whereClause = "bound_box_x_coordinate > " + (viewPortMinX) +
-        //         " AND bound_box_x_coordinate < " + (viewPortMaxX) +
-        //         " AND bound_box_y_coordinate > " + (viewPortMinY + offset) +
-        //         " AND bound_box_y_coordinate < " + (viewPortMaxY - offset);
 
         CircleCell curCircleCell = null;
         CircleCell parentCircleCell = null;
 
-        // try (ResultSet rs = ElementDAOImpl.selectWhere(whereClause)) {
         try (ResultSet rs = DatabaseUtil.select(sql)) {
             while (rs.next()) {
-                // ResultSetMetaData rsmd = rs.getMetaData();
-                // for (int i = 1; i < rsmd.getColumnCount()+1; i++) {
-                //     System.out.println(">>>>>>>>>>>>> " + rsmd.getColumnName(i));
-                // }
 
                 String id = String.valueOf(rs.getInt("EID"));
                 String parentId = String.valueOf(rs.getInt("parent_id"));
@@ -213,15 +199,20 @@ public class ConvertDBtoElementTree {
                 float xCoordinate = rs.getFloat("bound_box_x_coordinate");
                 float yCoordinate = rs.getFloat("bound_box_y_coordinate");
                 int idEnterCallTrace = rs.getInt("id_enter_call_trace");
-                String methodName = rs.getString("method_name");
+
+                int methodId = rs.getInt("method_id");
+                String methodName = "";
+                if (methodId == 0) {
+                    methodName = rs.getString("message");
+                } else {
+                    try (ResultSet rsMethod = MethodDefnDAOImpl.selectWhere("id = " + methodId)) {
+                        while (rsMethod.next()) {
+                            methodName = rsMethod.getString("method_name");
+                        }
+                    }catch (Exception e) {}
+                }
                 String eventType = "";
-                // String threadToShow = "";
-                // if (!showAllThreads) threadToShow = " AND thread_id = " + currentThreadId;
-                // try  (ResultSet ctRS = CallTraceDAOImpl.selectWhere("id = " + idEnterCallTrace + threadToShow)) {
-                //     System.out.println(" just showing: " + threadToShow);
-                //     if (ctRS.next())
                 eventType = rs.getString("message");
-                // }
 
                 /*
                 * collapsed - actions
@@ -235,7 +226,6 @@ public class ConvertDBtoElementTree {
                 if (!mapCircleCellsOnUI.containsKey(id) && (collapsed == 0 || collapsed == 2)) {
                     curCircleCell = new CircleCell(id, xCoordinate, yCoordinate);
                     curCircleCell.setMethodName(methodName);
-                    System.out.println("ConvertDBtoElementTree::getCirclesToLoadIntoViewPort: adding cell: " + curCircleCell.getCellId());
                     model.addCell(curCircleCell);
                     String label = "";
                     switch (eventType.toUpperCase()) {
@@ -360,7 +350,8 @@ public class ConvertDBtoElementTree {
         double minY = curViewPort.getMinY();
 
         int offset = 20;
-        BoundingBox shrunkBB = new BoundingBox(minX + offset, minY + offset, curViewPort.getWidth() - (2 * offset), curViewPort.getHeight() - (2 * offset));
+        // BoundingBox shrunkBB = new BoundingBox(minX + offset, minY + offset, curViewPort.getWidth() - (2 * offset), curViewPort.getHeight() - (2 * offset));
+        BoundingBox shrunkBB = new BoundingBox(minX , minY, curViewPort.getWidth() - (2), curViewPort.getHeight() - (2));
 
             Iterator i = mapCircleCellsOnUI.entrySet().iterator();
             while (i.hasNext()) {
@@ -446,7 +437,6 @@ public class ConvertDBtoElementTree {
             e.printStackTrace();
         }
 
-        System.out.println(">> height: " + height + " width: " + width);
 
         graph.drawPlaceHolderLines(height, width);
     }

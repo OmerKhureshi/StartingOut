@@ -55,6 +55,28 @@ public class DatabaseUtil {
         return c;
     }
 
+    public static void shutdownDatabse() {
+
+        String driver = "org.apache.derby.jdbc.EmbeddedDriver";
+        Connection c = null;
+        try {
+            Class.forName(driver).newInstance();
+            String url = "jdbc:derby:;shutdown=true";
+            c = DriverManager.getConnection(url);
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            String sqlError = e.getSQLState();
+            if (sqlError.equals("XJ015")) {
+                System.out.println(" Derby database shutdown successful.");
+            }
+        }
+    }
+
     public static Connection getConnection() {
 
         return createDatabaseConnection();

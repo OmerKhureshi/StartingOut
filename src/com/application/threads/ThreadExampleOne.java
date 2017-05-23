@@ -1,27 +1,27 @@
 package com.application.threads;
 
+import com.sun.org.apache.bcel.internal.generic.INSTANCEOF;
+
 import java.io.File;
+import java.sql.Timestamp;
+import java.time.Instant;
 
 /**
  * Main thread create a new thread, b, and waits while thread b executes a task and notifies the main thread.
  */
 class ThreadExampleOne {
     public static void main(String [] args) {
-        System.out.println("Main Enter");
-        ObjWrapper.setLogFileName(new File ("ObjectWrapperCallTrace.txt"));
-
         ThreadB b = new ThreadB();
         b.setName("Thread B");
         b.start();
         synchronized(b) {
             try {
-                // System.out.println("Waiting for b to complete...");
+                System.out.println("Waiting for b to complete...");
                 ObjWrapper.wait(b);  // Use instead of b.wait();
                 b.total *= 2;
             } catch (InterruptedException e) {}
         }
-        // System.out.println("Total is: " + b.total);
-        System.out.println("Main Exit");
+        System.out.println("Total is: " + b.total);
     }
 }
 
@@ -33,7 +33,6 @@ class ThreadB extends Thread {
     int total  = 0;
     boolean isNotified = false;
     public void run() {
-        System.out.println("run Enter");
         synchronized(this) {
             try {
                 sleep(1500);
@@ -45,6 +44,5 @@ class ThreadB extends Thread {
             }
             ObjWrapper.notify(this);  // Use instead of b.notify();
         }
-        System.out.println("run Exit");
     }
 }

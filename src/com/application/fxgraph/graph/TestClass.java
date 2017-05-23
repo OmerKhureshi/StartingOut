@@ -75,7 +75,6 @@ public class TestClass extends Application {
 
                 double minX = hvalue * (contentWidth - viewportWidth);
                 double maxX = minX + viewportHeight;
-                System.out.println(" minX: " + minX + " maxX: " + maxX);
             }
         };
         scrollPane.viewportBoundsProperty().addListener(changeListener);
