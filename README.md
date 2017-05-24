@@ -9,8 +9,8 @@
 ### Instruction to run tool using intelliJ.
 1. Download repo as zip.
 2. Unzip and import into intelliJ.
-3. Download controlsFX library from [here](http://fxexperience.com/downloads/controlsfx-8-40-12/). Unzip the folder and add controlsfx-8.40.12.jar as a project dependency.
-4. Download Derby DB from [here](https://db.apache.org/derby/releases/release-10.13.1.1.cgi). Unzip the folder and add db-derby-10.13.1.1-bin\lib\derby.jar as project dependency.
+3. Download controlsFX library from [here](http://fxexperience.com/downloads/controlsfx-8-40-12/) or from the External libraries folder in this GitHub repo. Unzip the folder and add controlsfx-8.40.12.jar as a project dependency.
+4. Download Derby DB from [here](https://db.apache.org/derby/releases/release-10.13.1.1.cgi) or from the External libraries folder in this GitHub repo. Unzip the folder and add db-derby-10.13.1.1-bin\lib\derby.jar as project dependency.
 5. In intelliJ, mark the assets directory as resources. (Goto project structure -> Modules -> Sources -> select assets and click Resources).
 6. Run the Main class.
 
