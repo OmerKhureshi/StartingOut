@@ -69,20 +69,11 @@ public class Main extends Application {
         Menu file = new Menu("File");
         MenuItem demoOne = new MenuItem("Load Demo 1");
         MenuItem demoTwo = new MenuItem("Load Demo 2");
-        MenuItem demoThree = new MenuItem("Load Demo 3");
 
-        file.getItems().addAll(demoOne, demoTwo, demoThree);
+        file.getItems().addAll(demoOne, demoTwo);
         mb.getMenus().add(file);
 
         demoOne.setOnAction(event -> {
-            DatabaseUtil.shutdownDatabse();
-
-            CallTraceLogFile.setFileName("L-Instrumentation_call_trace_Demo_1.txt");
-            MethodDefinitionLogFile.setFileName("L-Instrumentation_method_definitions_Demo_1.txt");
-            reload();
-        });
-
-        demoTwo.setOnAction(event -> {
             DatabaseUtil.shutdownDatabse();
 
             CallTraceLogFile.setFileName("L-Instrumentation_call_trace_Demo_2.txt");
@@ -90,7 +81,7 @@ public class Main extends Application {
             reload();
         });
 
-        demoThree.setOnAction(event -> {
+        demoTwo.setOnAction(event -> {
             DatabaseUtil.shutdownDatabse();
 
             CallTraceLogFile.setFileName("L-Instrumentation_call_trace_Demo_3.txt");
